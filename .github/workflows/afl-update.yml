@@ -1,0 +1,59 @@
+# Save as .github/workflows/afl-update.yml in a PUBLIC GitHub repo that also
+# contains update_afl_data.R, build_h2h_json.py and afl_player_games_2015_2026.csv.
+#
+# Each run: re-scrapes the current season from AFL Tables, rewrites the master
+# CSV, rebuilds h2h_compact.json, and commits whatever changed. The app fetches
+# that JSON, so a successful run is all it takes for the app to show new results.
+
+name: AFL data update
+
+on:
+  schedule:
+    # Twice daily, 07:00 and 19:00 Melbourne time (approx - GitHub runs on UTC
+    # and ignores Australian DST, so these drift an hour across the year, which
+    # doesn't matter for a job that runs every day anyway).
+    - cron: '0 21 * * *'
+    - cron: '0 9  * * *'
+  workflow_dispatch:          # run it by hand from the Actions tab
+
+# Needed for the bot to push back to the repo.
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::fitzRoy
+            any::dplyr
+            any::readr
+
+      - name: Refresh current season
+        run: Rscript update_afl_data.R afl_player_games_2015_2026.csv
+
+      - name: Rebuild the app's data file
+        # Stdlib only, so no pip install step. Fails loudly if match grouping
+        # breaks, which stops a corrupt JSON reaching the app.
+        run: python3 build_h2h_json.py afl_player_games_2015_2026.csv h2h_compact.json
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "afl-data-bot"
+          git config user.email "afl-data-bot@users.noreply.github.com"
+          rm -f afl_player_games_2015_2026.csv.bak
+          if git diff --quiet -- afl_player_games_2015_2026.csv h2h_compact.json; then
+            echo "No new results."
+          else
+            git add afl_player_games_2015_2026.csv h2h_compact.json
+            git commit -m "AFL data refresh $(date +%Y-%m-%d\ %H:%M)"
+            git push
+          fi
