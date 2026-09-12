@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#152019">
+<title>AFL head to head</title>
+<style>html,body{margin:0;padding:0;background:#152019;}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-type="module">
+const { useState, useEffect, useMemo } = React;
+
+
+// ---------------------------------------------------------------------------
+// SET THIS. Point it at h2h_compact.json in your repo. Format:
+//   https://raw.githubusercontent.com/<user>/<repo>/<branch>/h2h_compact.json
+// The repo must be public - raw.githubusercontent.com sends permissive CORS
+// headers for public repos, which is what lets the app read it from a browser.
+// ---------------------------------------------------------------------------
+const DATA_URL = "./h2h_compact.json";
+
+const BOARD="#152019", PANEL="#1c2b23", CHALK="#e8e3d4", AMBER="#e8b42c", MUTED="#7d9186", RULE="#2c4136";
+const ROUND_NAMES={EF:"Elimination final",QF:"Qualifying final",SF:"Semi final",
+  PF:"Preliminary final",GF:"Grand final","Wildcard Final":"Wildcard final"};
+const SHORT={EF:"EF",QF:"QF",SF:"SF",PF:"PF",GF:"GF","Wildcard Final":"WC"};
+const isNum=(r)=>/^\d+$/.test(r);
+const roundLabel=(r)=>ROUND_NAMES[r]||(isNum(r)?`Round ${r}`:r);
+const shortRound=(r)=>isNum(r)?`R${r}`:(SHORT[r]||r);
+const pts=(gb)=>{const[g,b]=String(gb).split(".");const G=+g,B=+b;return Number.isFinite(G)&&Number.isFinite(B)?G*6+B:null;};
+const fmtDate=(d)=>`${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
+
+function decode(RAW){
+  const {t:teams,p:players,v:venues,m:recs}=RAW;
+  return recs.map((rec,idx)=>{
+    const parts=rec.split("^");
+    const [d,tm,vIdx,rnd]=parts[0].split(",");
+    const sides=parts.slice(1).map((s)=>{
+      const [head,plist]=s.split("~");
+      const [tIdx,gb]=head.split(",");
+      return {
+        team:teams[+tIdx], gb, points:pts(gb),
+        players:(plist?plist.split("|"):[]).map((p)=>{
+          const [pIdx,D,K,H,G,T]=p.split(",");
+          return {name:players[+pIdx],disposals:+D,kicks:+K,handballs:+H,goals:+G,tog:+T};
+        }),
+      };
+    });
+    return {id:idx,date:d,dateLabel:fmtDate(d),time:`${tm.slice(0,2)}:${tm.slice(2)}`,
+            venue:venues[+vIdx],year:d.slice(0,4),round:rnd,sides};
+  });
+}
+
+function AflHeadToHead(){
+  const [raw,setRaw]=useState(null);
+  const [err,setErr]=useState(null);
+  const [teamA,setTeamA]=useState("");
+  const [teamB,setTeamB]=useState("");
+  const [openId,setOpenId]=useState(null);
+  const [rankBy,setRankBy]=useState("total");
+
+  useEffect(()=>{
+    let live=true;
+    // cache:no-store so a freshly committed file isn't masked by a stale cache
+    fetch(DATA_URL,{cache:"no-store"})
+      .then(r=>{ if(!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
+      .then(j=>{ if(live) setRaw(j); })
+      .catch(e=>{ if(live) setErr(e.message); });
+    return ()=>{live=false;};
+  },[]);
+
+  const all=useMemo(()=>raw?decode(raw):[],[raw]);
+  const teams=useMemo(()=>[...new Set(all.flatMap(m=>m.sides.map(s=>s.team)))].sort(),[all]);
+
+  const matchups=useMemo(()=>{
+    if(!teamA||!teamB||teamA===teamB) return [];
+    return all
+      .filter(m=>{const n=m.sides.map(s=>s.team);return n.includes(teamA)&&n.includes(teamB);})
+      .sort((a,b)=>b.date.localeCompare(a.date))
+      .slice(0,5)
+      .map(m=>{
+        const A=m.sides.find(s=>s.team===teamA), B=m.sides.find(s=>s.team===teamB);
+        return {...m,A,B,winner:A.points>B.points?teamA:B.points>A.points?teamB:"draw"};
+      });
+  },[all,teamA,teamB]);
+
+  const tally=useMemo(()=>{
+    const t={[teamA]:0,[teamB]:0,draw:0};
+    matchups.forEach(m=>{t[m.winner]+=1;});
+    return t;
+  },[matchups,teamA,teamB]);
+
+  const scoring=useMemo(()=>{
+    if(!matchups.length) return null;
+    const pA=(m)=>m.A.points??0, pB=(m)=>m.B.points??0;
+    const byVenue=new Map();
+    matchups.forEach(m=>{
+      if(!byVenue.has(m.venue)) byVenue.set(m.venue,{venue:m.venue,games:0,a:0,b:0,total:0});
+      const v=byVenue.get(m.venue);
+      v.games+=1; v.a+=pA(m); v.b+=pB(m); v.total+=pA(m)+pB(m);
+    });
+    const a=matchups.reduce((s,m)=>s+pA(m),0);
+    const b=matchups.reduce((s,m)=>s+pB(m),0);
+    const totals=matchups.map(m=>pA(m)+pB(m));
+    return {a,b,tot:a+b,games:matchups.length,
+      venues:[...byVenue.values()].sort((x,y)=>y.games-x.games||y.total-x.total),
+      hi:Math.max(...totals), lo:Math.min(...totals)};
+  },[matchups]);
+
+  const summary=useMemo(()=>{
+    if(!matchups.length) return [];
+    const byPlayer=new Map();
+    matchups.forEach((m,gi)=>{
+      m.sides.forEach(s=>{
+        s.players.forEach(p=>{
+          if(!byPlayer.has(p.name))
+            byPlayer.set(p.name,{name:p.name,team:s.team,cells:Array(matchups.length).fill(null)});
+          const rec=byPlayer.get(p.name);
+          rec.cells[gi]={d:p.disposals,tog:p.tog};
+          if(gi===0||!rec.seen){rec.team=s.team;rec.seen=true;}
+        });
+      });
+    });
+    return [...byPlayer.values()].map(r=>{
+      const played=r.cells.filter(Boolean);
+      const total=played.reduce((a,c)=>a+c.d,0);
+      return {...r,games:played.length,total,avg:total/played.length};
+    })
+      .filter(r=>r.games>=3)
+      .sort((a,b)=>(rankBy==="avg"?b.avg-a.avg:b.total-a.total)||b.games-a.games)
+      .slice(0,15);
+  },[matchups,rankBy]);
+
+  const cond=`'Barlow Condensed','Oswald','Arial Narrow',sans-serif`;
+  const body=`'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
+  const sel={background:PANEL,color:CHALK,border:`1px solid ${RULE}`,padding:"10px 12px",
+             fontSize:15,fontFamily:body,width:"100%",borderRadius:2};
+  const toggle=(on)=>({background:on?AMBER:"transparent",color:on?BOARD:MUTED,
+    border:`1px solid ${on?AMBER:RULE}`,padding:"5px 12px",fontSize:12.5,cursor:"pointer",
+    fontFamily:body,borderRadius:2});
+
+  const shell=(inner)=>(
+    <div style={{background:BOARD,minHeight:"100vh",color:CHALK,fontFamily:body,padding:"28px 18px 60px"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500&display=swap');
+        *{box-sizing:border-box;}
+        table{border-collapse:collapse;width:100%;}
+        th,td{padding:7px 8px;text-align:right;font-size:13.5px;}
+        th:first-child,td:first-child{text-align:left;}
+        th{color:${MUTED};font-weight:500;font-size:11.5px;border-bottom:1px solid ${RULE};}
+        tbody tr{border-bottom:1px solid rgba(44,65,54,.45);}
+        button:focus-visible,select:focus-visible{outline:2px solid ${AMBER};outline-offset:2px;}
+        .wrap{max-width:920px;margin:0 auto;}
+        .picker{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;}
+        .scroll{overflow-x:auto;}
+        .sum th,.sum td{white-space:nowrap;}
+        .sum td.g{padding-top:5px;padding-bottom:5px;}
+        @media (max-width:560px){.picker{grid-template-columns:1fr;}.picker span{display:none;}}
+      `}</style>
+      <div className="wrap">{inner}</div>
+    </div>
+  );
+
+  if(err) return shell(
+    <>
+      <h1 style={{fontFamily:cond,fontSize:40,fontWeight:700,margin:"0 0 10px"}}>Can&rsquo;t reach the data</h1>
+      <p style={{color:MUTED,fontSize:14,lineHeight:1.6}}>
+        {err}. Check that <code style={{color:CHALK}}>DATA_URL</code> at the top of this file points at
+        a <strong>public</strong> repo and that <code style={{color:CHALK}}>h2h_compact.json</code> has
+        been committed. Opening the URL directly in a browser tab is the quickest test.
+      </p>
+    </>
+  );
+
+  if(!raw) return shell(
+    <p style={{color:MUTED,fontSize:15,marginTop:40}}>Loading the latest results&hellip;</p>
+  );
+
+  return shell(
+    <>
+      <h1 style={{fontFamily:cond,fontSize:46,fontWeight:700,letterSpacing:"-.01em",margin:"0 0 4px"}}>Head to head</h1>
+      <p style={{color:MUTED,margin:"0 0 4px",fontSize:15}}>
+        The last five meetings between any two clubs, with every player&rsquo;s game.
+      </p>
+      <p style={{color:MUTED,margin:"0 0 26px",fontSize:12.5}}>
+        Data current to {raw.latest ? fmtDate(raw.latest.replace(/-/g,"")) : "\u2014"}
+        {raw.built && ` \u00b7 rebuilt ${raw.built}`}
+      </p>
+
+      <div className="picker" style={{marginBottom:28}}>
+        <select style={sel} value={teamA} onChange={e=>{setTeamA(e.target.value);setOpenId(null);}}>
+          <option value="">Select a club</option>
+          {teams.map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+        <span style={{fontFamily:cond,color:MUTED,fontSize:20}}>v</span>
+        <select style={sel} value={teamB} onChange={e=>{setTeamB(e.target.value);setOpenId(null);}}>
+          <option value="">Select a club</option>
+          {teams.map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+
+      {teamA&&teamB&&teamA===teamB&&<p style={{color:MUTED}}>Pick two different clubs.</p>}
+      {teamA&&teamB&&teamA!==teamB&&matchups.length===0&&
+        <p style={{color:MUTED}}>These two haven&rsquo;t met in the data.</p>}
+      {(!teamA||!teamB)&&<p style={{color:MUTED}}>Choose two clubs to see their recent record.</p>}
+
+      {matchups.length>0&&(
+        <>
+          <div style={{background:PANEL,borderLeft:`3px solid ${AMBER}`,padding:"18px 22px",marginBottom:24}}>
+            <div style={{fontFamily:cond,fontSize:42,fontWeight:700,lineHeight:1}}>
+              <span style={{color:tally[teamA]>tally[teamB]?AMBER:CHALK}}>{tally[teamA]}</span>
+              <span style={{color:MUTED,margin:"0 10px"}}>&ndash;</span>
+              <span style={{color:tally[teamB]>tally[teamA]?AMBER:CHALK}}>{tally[teamB]}</span>
+            </div>
+            <div style={{color:MUTED,fontSize:14,marginTop:6}}>
+              {teamA} v {teamB}, last {matchups.length} meeting{matchups.length===1?"":"s"}
+              {tally.draw>0&&`, ${tally.draw} drawn`}
+            </div>
+          </div>
+
+          <div style={{background:PANEL,padding:"18px 20px",marginBottom:26}}>
+            <div style={{fontFamily:cond,fontSize:26,fontWeight:600,lineHeight:1.1}}>Scoring</div>
+            <div style={{color:MUTED,fontSize:13,margin:"4px 0 16px"}}>
+              Points across these {scoring.games} games. Match total is both sides combined
+              &mdash; {scoring.tot} in all, highest {scoring.hi}, lowest {scoring.lo}.
+            </div>
+
+            <div style={{display:"flex",gap:26,flexWrap:"wrap",marginBottom:18,
+                         fontFamily:cond,fontSize:30,fontWeight:700,lineHeight:1}}>
+              <div>
+                <span style={{color:scoring.a>scoring.b?AMBER:CHALK}}>{scoring.a}</span>
+                <span style={{color:MUTED,margin:"0 8px"}}>&ndash;</span>
+                <span style={{color:scoring.b>scoring.a?AMBER:CHALK}}>{scoring.b}</span>
+                <div style={{fontFamily:body,fontSize:12,fontWeight:400,color:MUTED,marginTop:6}}>
+                  {teamA} v {teamB}, points for
+                </div>
+              </div>
+              <div>
+                <span>{(scoring.tot/scoring.games).toFixed(1)}</span>
+                <div style={{fontFamily:body,fontSize:12,fontWeight:400,color:MUTED,marginTop:6}}>
+                  average match total
+                </div>
+              </div>
+            </div>
+
+            <div className="scroll" style={{marginBottom:20}}>
+              <table className="sum">
+                <thead><tr>
+                  <th>Ground</th><th>Game</th><th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Margin</th>
+                </tr></thead>
+                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+                  {matchups.map(m=>{
+                    const a=m.A.points??0, b=m.B.points??0;
+                    return (
+                      <tr key={m.id}>
+                        <td>{m.venue}</td>
+                        <td style={{color:MUTED,fontSize:12.5}}>{shortRound(m.round)} &rsquo;{m.year.slice(2)}</td>
+                        <td style={{color:m.winner===teamA?AMBER:CHALK}}>{a}</td>
+                        <td style={{color:m.winner===teamB?AMBER:CHALK}}>{b}</td>
+                        <td style={{fontWeight:600}}>{a+b}</td>
+                        <td style={{color:MUTED}}>{a===b?"draw":Math.abs(a-b)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{fontFamily:cond,fontSize:19,fontWeight:600,marginBottom:5}}>By ground</div>
+            <div className="scroll">
+              <table className="sum">
+                <thead><tr>
+                  <th>Ground</th><th>Games</th><th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Avg total</th>
+                </tr></thead>
+                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+                  {scoring.venues.map(v=>(
+                    <tr key={v.venue}>
+                      <td>{v.venue}</td>
+                      <td style={{color:MUTED}}>{v.games}</td>
+                      <td style={{color:v.a>v.b?AMBER:CHALK}}>{v.a}</td>
+                      <td style={{color:v.b>v.a?AMBER:CHALK}}>{v.b}</td>
+                      <td style={{fontWeight:600}}>{v.total}</td>
+                      <td style={{color:MUTED}}>{(v.total/v.games).toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style={{background:PANEL,padding:"18px 20px",marginBottom:26}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",
+                         gap:14,flexWrap:"wrap",marginBottom:14}}>
+              <div>
+                <div style={{fontFamily:cond,fontSize:26,fontWeight:600,lineHeight:1.1}}>
+                  Leading ball-winners
+                </div>
+                <div style={{color:MUTED,fontSize:13,marginTop:4}}>
+                  Top 15 by disposals, minimum three of these five games. Each cell is disposals
+                  with time on ground beneath. Games read newest first.
+                </div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                <button style={toggle(rankBy==="total")} onClick={()=>setRankBy("total")}>Total</button>
+                <button style={toggle(rankBy==="avg")} onClick={()=>setRankBy("avg")}>Average</button>
+              </div>
+            </div>
+
+            <div className="scroll">
+              <table className="sum">
+                <thead>
+                  <tr>
+                    <th>Player</th><th>Club</th><th>Games</th>
+                    <th style={{color:rankBy==="total"?AMBER:MUTED}}>Total</th>
+                    <th style={{color:rankBy==="avg"?AMBER:MUTED}}>Avg</th>
+                    {matchups.map(m=>(
+                      <th key={m.id} title={`${roundLabel(m.round)} ${m.year} · ${m.venue}`}>
+                        {shortRound(m.round)} &rsquo;{m.year.slice(2)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+                  {summary.map((r,i)=>(
+                    <tr key={r.name}>
+                      <td style={{color:i<3?AMBER:CHALK}}>{r.name}</td>
+                      <td style={{color:MUTED,fontSize:12.5}}>{r.team}</td>
+                      <td style={{color:MUTED}}>{r.games}</td>
+                      <td style={{fontWeight:rankBy==="total"?600:400}}>{r.total}</td>
+                      <td style={{fontWeight:rankBy==="avg"?600:400}}>{r.avg.toFixed(1)}</td>
+                      {r.cells.map((c,ci)=>(
+                        <td className="g" key={ci}>
+                          {c?(<><div>{c.d}</div>
+                               <div style={{color:MUTED,fontSize:11}}>{c.tog?`${c.tog}%`:"\u2013"}</div></>
+                          ):<span style={{color:RULE}}>&mdash;</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {summary.length===0&&
+              <p style={{color:MUTED,fontSize:13,margin:0}}>No player appeared in three of these games.</p>}
+          </div>
+
+          {matchups.map(m=>{
+            const open=openId===m.id;
+            return (
+              <div key={m.id} style={{background:PANEL,marginBottom:9}}>
+                <button onClick={()=>setOpenId(open?null:m.id)} aria-expanded={open}
+                  style={{width:"100%",background:"none",border:"none",color:CHALK,padding:"15px 18px",
+                          cursor:"pointer",textAlign:"left",fontFamily:body,display:"grid",
+                          gridTemplateColumns:"1fr auto",gap:12,alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:12.5,color:MUTED,marginBottom:5}}>
+                      {m.dateLabel} &middot; {m.time} &middot; {m.venue} &middot; {roundLabel(m.round)} {m.year}
+                    </div>
+                    <div style={{fontFamily:cond,fontSize:24,fontWeight:600}}>
+                      <Side s={m.A} win={m.winner===teamA}/>
+                      <span style={{color:MUTED,margin:"0 9px"}}>v</span>
+                      <Side s={m.B} win={m.winner===teamB}/>
+                    </div>
+                  </div>
+                  <span style={{color:MUTED,fontSize:12.5,whiteSpace:"nowrap"}}>{open?"Hide":"Players"}</span>
+                </button>
+                {open&&(
+                  <div style={{padding:"0 18px 18px",display:"grid",gap:24}}>
+                    {[m.A,m.B].map(s=><PlayerTable key={s.team} side={s}/>)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
+    </>
+  );
+}
+
+function Side({s,win}){
+  return (
+    <span style={{color:win?AMBER:CHALK}}>
+      {s.team} <span style={{fontVariantNumeric:"tabular-nums"}}>{s.gb}</span>
+      {s.points!=null&&<span style={{color:MUTED,fontSize:16}}> ({s.points})</span>}
+    </span>
+  );
+}
+
+function PlayerTable({side}){
+  const ps=[...side.players].sort((a,b)=>b.disposals-a.disposals);
+  return (
+    <div>
+      <div style={{fontFamily:`'Barlow Condensed',sans-serif`,fontSize:19,fontWeight:600,marginBottom:5}}>{side.team}</div>
+      <div className="scroll">
+        <table>
+          <thead><tr>
+            <th>Player</th><th>Disp</th><th>Kicks</th><th>HB</th><th>Goals</th><th>TOG</th>
+          </tr></thead>
+          <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+            {ps.map((p,i)=>(
+              <tr key={p.name+i}>
+                <td>{p.name}</td><td>{p.disposals}</td><td>{p.kicks}</td>
+                <td>{p.handballs}</td><td>{p.goals||"\u2013"}</td>
+                <td>{p.tog?`${p.tog}%`:"\u2013"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AflHeadToHead />);
+</script>
+</body>
+</html>
