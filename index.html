@@ -763,12 +763,36 @@ function Market({name,label,pick,oddsKey,sub,prob,none,gameId,bt,minProb,odds,se
   );
 }
 
-function TipCard({g,bt,minProb,odds,setOdds}){
+// One disposal multi (the 90% one or the 80% one): same legs, bars and odds box for both.
+function DisposalMarket({name,d,target,bt,common}){
+  if(!d) return null;
+  const legs=d.legs||[];
+  const label=`Disposals \u2014 ${Math.round(target*100)}%`;
+  if(!legs.length) return <Market name={name} {...common} label={label} none={`No ${Math.round(target*100)}%+ pick`}/>;
+  return (
+    <Market name={name} {...common} minProb={target} bt={bt} label={label}
+      pick={`${legs.length} leg${legs.length===1?"":"s"} combined`}
+      oddsKey={legs.map(l=>`${l.player} ${l.threshold}+`).join(",")}
+      prob={d.combined}
+      sub="Approximate: legs treated as independent">
+      {legs.map(l=>(
+        <div className="leg" key={l.player+l.team}>
+          <span>{l.player}<span className="thr">{l.threshold}+</span>
+            <span className="muted" style={{fontSize:11.5,marginLeft:7}}>{l.team} &middot; avg {l.avg}</span></span>
+          <span className="p">{pct(l.prob)}</span>
+          <Bar p={l.prob} thin/>
+        </div>
+      ))}
+      <div className="mkt-sub" style={{marginTop:12}}>Combined</div>
+    </Market>
+  );
+}
+
+function TipCard({g,bt,minProb,altProb,odds,setOdds}){
   const mk=g.markets||{}, M=(bt&&bt.markets)||{};
   const common={gameId:g.id,minProb,odds,setOdds};
   const cut=`${Math.round(minProb*100)}%+`;
   const m=g.pred?g.pred.margin:null;
-  const legs=(mk.disposals&&mk.disposals.legs)||[];
   return (
     <div className="card tip">
       <div className="meta">
@@ -793,24 +817,9 @@ function TipCard({g,bt,minProb,odds,setOdds}){
               sub={`Smallest start either side covers at ${cut}`}/>}
         {mk.total&&<Market name="total" {...common} bt={M.total} pick={mk.total.pick} prob={mk.total.prob}
               sub={`Closer side to the predicted ${g.pred.total.toFixed(0)} \u00b7 other side ${mk.total.other}`}/>}
-        {mk.disposals&&(legs.length
-          ?<Market name="disposals" {...common} bt={M.disposals}
-              label={`Disposals \u00b7 ${legs.length}-leg multi`}
-              pick={`${legs.length} leg${legs.length===1?"":"s"} combined`}
-              oddsKey={legs.map(l=>`${l.player} ${l.threshold}+`).join(",")}
-              prob={mk.disposals.combined}
-              sub="Approximate: legs treated as independent">
-              {legs.map(l=>(
-                <div className="leg" key={l.player+l.team}>
-                  <span>{l.player}<span className="thr">{l.threshold}+</span>
-                    <span className="muted" style={{fontSize:11.5,marginLeft:7}}>{l.team} &middot; avg {l.avg}</span></span>
-                  <span className="p">{pct(l.prob)}</span>
-                  <Bar p={l.prob} thin/>
-                </div>
-              ))}
-              <div className="mkt-sub" style={{marginTop:12}}>Combined</div>
-            </Market>
-          :<Market name="disposals" {...common} none={`No ${cut} pick`}/>)}
+        <DisposalMarket name="disposals" d={mk.disposals} target={minProb} bt={M.disposals} common={common}/>
+        <DisposalMarket name="disposals_80" d={mk.disposals_80} bt={M.disposals_80} common={common}
+          target={(mk.disposals_80&&mk.disposals_80.min_prob)||altProb}/>
       </div>
     </div>
   );
@@ -818,40 +827,48 @@ function TipCard({g,bt,minProb,odds,setOdds}){
 
 function ModelRecord({bt,minProb}){
   if(!bt||!bt.markets) return null;
-  const rows=["winner","line","total","disposals"].map(k=>[MARKET_NAMES[k],bt.markets[k]]).filter(r=>r[1]);
+  const alt=bt.markets.disposals_80;
+  const altProb=(alt&&alt.min_prob)||0.8;
+  // [name, record, the hit rate it has to reach]
+  const rows=["winner","line","total","disposals"]
+    .map(k=>[k==="disposals"&&alt?`Disposals \u2014 ${pct(minProb)}`:MARKET_NAMES[k],bt.markets[k],minProb]).filter(r=>r[1]);
+  if(alt) rows.push([`Disposals \u2014 ${pct(altProb)}`,alt,altProb]);
   const cell=(b)=>b&&b.picks?<>{pct(b.rate)}<div className="muted" style={{fontSize:11}}>{b.landed}/{b.picks}</div></>
                             :<span style={{color:RULE}}>&mdash;</span>;
-  const labels=(rows[0]&&rows[0][1].buckets||[]).map(b=>b.label);
-  const mu=bt.multi;
+  // Every bucket any row uses, lowest first (the 80% legs add an 80\u201390 column).
+  const labels=[...new Set(rows.flatMap(r=>(r[1].buckets||[]).map(b=>b.label)))].sort((a,b)=>parseFloat(a)-parseFloat(b));
+  const mu=bt.multi, mu80=bt.multi_80;
+  const multis=[[mu,mu80?` \u2014 ${pct(minProb)}`:""],[mu80,` \u2014 ${pct((mu80&&mu80.min_prob)||altProb)}`]].filter(r=>r[0]);
   return (
     <div className="panel">
       <div className="panel-title">Model record</div>
       <div className="panel-note" style={{margin:"4px 0 14px"}}>
         Backtest over {(bt.seasons||[]).join(" and ")} ({bt.games} games): each round tipped using only what was
         known before it. How often picks at {pct(minProb)}+ actually landed, by the probability the model gave them.
+        {alt&&` The Disposals \u2014 ${pct(altProb)} legs are judged against ${pct(altProb)} instead.`}
       </div>
       <div className="scroll">
         <table className="sum">
           <thead><tr><th>Market</th><th>Picks</th><th>Landed</th>{labels.map(l=><th key={l}>{l}%</th>)}</tr></thead>
           <tbody>
-            {rows.map(([name,m])=>(
+            {rows.map(([name,m,target])=>(
               <tr key={name}>
                 <td>{name}</td>
                 <td className="muted">{m.picks}</td>
-                <td className={m.rate!=null&&m.rate>=minProb?"win":""} style={{fontWeight:600,color:m.rate!=null&&m.rate<minProb?LAV:undefined}}>{pct(m.rate,1)}</td>
-                {m.buckets.map(b=><td className="g" key={b.label}>{cell(b)}</td>)}
+                <td className={m.rate!=null&&m.rate>=target?"win":""} style={{fontWeight:600,color:m.rate!=null&&m.rate<target?LAV:undefined}}>{pct(m.rate,1)}</td>
+                {labels.map(l=><td className="g" key={l}>{cell((m.buckets||[]).find(b=>b.label===l))}</td>)}
               </tr>
             ))}
-            {mu&&(
-              <tr>
-                <td>{mu.legs}-leg disposal multi</td>
+            {multis.map(([mu,suffix])=>(
+              <tr key={suffix}>
+                <td>{mu.legs}-leg disposal multi{suffix}</td>
                 <td className="muted">{mu.multis}</td>
                 <td style={{fontWeight:600}}>{pct(mu.rate,1)}</td>
                 <td className="muted" colSpan={labels.length} style={{fontSize:12}}>
                   {mu.avg_model_prob!=null?`model expected ${pct(mu.avg_model_prob,1)} (legs as independent)`:""}
                 </td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
@@ -880,12 +897,14 @@ function Tips(){
 
   const games=(data&&Array.isArray(data.games))?data.games:[];
   const minProb=(data&&data.min_prob)||0.9;
+  const altProb=(data&&data.disp_alt_prob)||0.8;
   const when=data&&data.generated?new Date(data.generated):null;
   return (
     <>
       <h1>Tips</h1>
       <p className="lede">
         Only picks the model rates {pct(minProb)} or better, from every result since 2015 and the game-day forecast.
+        {games.some(g=>g.markets&&g.markets.disposals_80)&&` Each game also gets a second disposal multi with every leg at ${pct(altProb)} or better.`}
       </p>
       <p className="current">
         {data===undefined?"Loading tips\u2026":
@@ -898,7 +917,7 @@ function Tips(){
           <div className="panel-title">No upcoming games &mdash; tips return next season</div>
         </div>
       )}
-      {games.map(g=><TipCard key={g.id} g={g} bt={data.backtest} minProb={minProb} odds={odds} setOdds={setOdds}/>)}
+      {games.map(g=><TipCard key={g.id} g={g} bt={data.backtest} minProb={minProb} altProb={altProb} odds={odds} setOdds={setOdds}/>)}
       {data&&<div style={{marginTop:games.length?22:0}}><ModelRecord bt={data.backtest} minProb={minProb}/></div>}
 
       <p className="foot">

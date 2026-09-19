@@ -37,9 +37,11 @@ import fetch_weather as fw   # VENUES, norm, classify, parse_hm, HOURLY, GAME_HO
 # Tunable settings
 # ---------------------------------------------------------------------------
 MIN_PROB            = 0.90            # the ONE cut-off every market uses
+DISP_ALT_PROB       = 0.80            # second, looser disposal multi shown beside the 90% one
 
 BACKTEST_SEASONS    = (2025, 2026)
 BUCKETS             = ((0.90, 0.93, "90\u201393"), (0.93, 0.96, "93\u201396"), (0.96, 1.01, "96+"))
+ALT_BUCKETS         = ((DISP_ALT_PROB, MIN_PROB, "80\u201390"),) + BUCKETS   # for the 80% disposal legs
 BURN_IN_GAMES       = 200             # residuals/fits ignored until this many games seen
 MIN_RESIDUALS       = 400             # no probabilities until this many residuals banked
 
@@ -450,10 +452,11 @@ class DispModel:
     def prob(self, v, mu_v, sd, thr):
         return self.z[v].p_gt((thr - 0.5 - mu_v) / sd)
 
-    def best_leg(self, v, mu_v, sd):
+    def best_leg(self, v, mu_v, sd, min_prob=MIN_PROB):
+        """Highest standard threshold that still clears min_prob."""
         for thr in reversed(DISP_THRESHOLDS):
             p = self.prob(v, mu_v, sd, thr)
-            if p >= MIN_PROB:
+            if p >= min_prob:
                 return thr, p
         return None
 
@@ -518,10 +521,10 @@ class Record:
         self.rows = []                     # (prob, landed)
     def add(self, p, landed):
         self.rows.append((p, bool(landed)))
-    def summary(self):
+    def summary(self, buckets=BUCKETS):
         n = len(self.rows); hit = sum(l for _, l in self.rows)
         out = {"picks": n, "landed": hit, "rate": round(hit / n, 4) if n else None, "buckets": []}
-        for lo, hi, label in BUCKETS:
+        for lo, hi, label in buckets:
             b = [l for p, l in self.rows if lo <= p < hi]
             out["buckets"].append({"label": label, "picks": len(b), "landed": sum(b),
                                    "rate": round(sum(b) / len(b), 4) if b else None})
@@ -544,11 +547,12 @@ def disp_preds(dm, g, lineups=None):
         out.append(d)
     return out
 
-def pick_legs(dm, v, preds, teams):
+def pick_legs(dm, v, preds, teams, min_prob=MIN_PROB):
+    """One leg per player: highest thresholds cleared first, ties to the higher probability."""
     legs = []
     for side in (0, 1):
         for name, (mu, sd, means) in preds[side].items():
-            best = dm.best_leg(v, means[v], sd)
+            best = dm.best_leg(v, means[v], sd, min_prob)
             if best:
                 legs.append({"player": name, "team": teams[side], "threshold": best[0],
                              "prob": best[1], "avg": means[v]})
@@ -560,8 +564,9 @@ def walk(games, k):
     res_m = [Emp(), Emp()]            # margin residuals: plain, with h2h (kept symmetric)
     res_t = Emp()
     bt = {"winner": [Record(), Record()], "line": [Record(), Record()], "total": Record(),
-          "disp": [Record() for _ in VARIANTS]}
+          "disp": [Record() for _ in VARIANTS], "disp_alt": [Record() for _ in VARIANTS]}
     multi = [[0, 0, 0.0] for _ in VARIANTS]       # multis, landed, summed model prob
+    multi_alt = [[0, 0, 0.0] for _ in VARIANTS]   # the same for the DISP_ALT_PROB multi
     mae = [0.0, 0.0, 0.0, 0]                       # margin plain, margin h2h, total, n
     brier = [[0.0, 0] for _ in VARIANTS]
     bt_games = 0
@@ -602,6 +607,13 @@ def walk(games, k):
                         if len(legs) == DISP_LEGS:
                             multi[v][0] += 1; multi[v][1] += all(hits)
                             multi[v][2] += math.prod(l["prob"] for l in legs)
+                        legs = pick_legs(dm, v, dp, (0, 1), DISP_ALT_PROB)
+                        hits = [actual[l["team"]][l["player"]] >= l["threshold"] for l in legs]
+                        for l, hit in zip(legs, hits):
+                            bt["disp_alt"][v].add(l["prob"], hit)
+                        if len(legs) == DISP_LEGS:
+                            multi_alt[v][0] += 1; multi_alt[v][1] += all(hits)
+                            multi_alt[v][2] += math.prod(l["prob"] for l in legs)
 
         for g, p, dp in zip(rnd, tps, dps):
             if tm.n >= BURN_IN_GAMES:
@@ -621,15 +633,22 @@ def walk(games, k):
         if bs[cand] < bs[0] * (1 - DISP_MIN_GAIN):
             dv = cand
     i = 1 if use_h2h else 0
-    mv = multi[dv]
+    mv, ma = multi[dv], multi_alt[dv]
+    alt = bt["disp_alt"][dv].summary(ALT_BUCKETS)
+    alt["min_prob"] = DISP_ALT_PROB                # the bar these legs are judged against
+    alt["below_target"] = alt["rate"] is not None and alt["rate"] < DISP_ALT_PROB
     backtest = {
         "seasons": list(BACKTEST_SEASONS), "games": bt_games,
         "margin_mae": round(mae[i] / n, 2), "total_mae": round(mae[2] / n, 2),
         "markets": {"winner": bt["winner"][i].summary(), "line": bt["line"][i].summary(),
-                    "total": bt["total"].summary(), "disposals": bt["disp"][dv].summary()},
+                    "total": bt["total"].summary(), "disposals": bt["disp"][dv].summary(),
+                    "disposals_80": alt},
         "multi": {"legs": DISP_LEGS, "multis": mv[0], "landed": mv[1],
                   "rate": round(mv[1] / mv[0], 4) if mv[0] else None,
                   "avg_model_prob": round(mv[2] / mv[0], 4) if mv[0] else None},
+        "multi_80": {"legs": DISP_LEGS, "min_prob": DISP_ALT_PROB, "multis": ma[0], "landed": ma[1],
+                     "rate": round(ma[1] / ma[0], 4) if ma[0] else None,
+                     "avg_model_prob": round(ma[2] / ma[0], 4) if ma[0] else None},
         "checks": {"margin_mae_plain": round(mae[0] / n, 3), "margin_mae_h2h": round(mae[1] / n, 3),
                    "disposal_brier": {VARIANTS[v]: (round(bs[v], 5) if bs[v] else None)
                                       for v in range(len(VARIANTS))}},
@@ -773,12 +792,21 @@ def tips(fixtures, games, tm, dm, res_m, res_t, use_h2h, dv):
                                 "pick": f"{kind.capitalize()} {ln:.1f}",
                                 "other": f"{k2.capitalize()} {l2:.1f}"}
         if len(dm.z[dv]) >= DISP_MIN_Z:
-            legs = pick_legs(dm, dv, disp_preds(dm, g, lineups), names)
+            dps = disp_preds(dm, g, lineups)
+            legs = pick_legs(dm, dv, dps, names)
             comb = math.prod(l["prob"] for l in legs) if legs else None
             markets["disposals"] = {
                 "legs": [{"player": l["player"], "team": l["team"], "threshold": l["threshold"],
                           "prob": round(l["prob"], 4), "avg": round(l["avg"], 1)} for l in legs],
                 "combined": round(comb, 4) if comb else None}
+            legs = pick_legs(dm, dv, dps, names, DISP_ALT_PROB)
+            comb = math.prod(l["prob"] for l in legs) if legs else None
+            markets["disposals_80"] = {
+                "min_prob": DISP_ALT_PROB,
+                "legs": [{"player": l["player"], "team": l["team"], "threshold": l["threshold"],
+                          "prob": round(l["prob"], 4), "avg": round(l["avg"], 1)} for l in legs],
+                "combined": round(comb, 4) if comb else None,   # approximate: legs as independent
+                "combined_approx": True}
 
         out.append({
             "id": f"{r['date']}|{hk}|{ak}", "home": names[0], "away": names[1],
@@ -829,9 +857,13 @@ def main():
     for name, m in backtest["markets"].items():
         bk = " | ".join(f"{b['label']}: {b['landed']}/{b['picks']}" for b in m["buckets"])
         rate = f"{m['rate']:.1%}" if m["rate"] is not None else "n/a"
-        log(f"  {name:<10} {m['landed']}/{m['picks']} landed ({rate})   {bk}")
+        flag = f"   << below the {m['min_prob']:.0%} target" if m.get("below_target") else ""
+        log(f"  {name:<12} {m['landed']}/{m['picks']} landed ({rate})   {bk}{flag}")
     mu = backtest["multi"]
     log(f"  {DISP_LEGS}-leg multi {mu['landed']}/{mu['multis']} landed "
+        f"(model expected {mu['avg_model_prob']})")
+    mu = backtest["multi_80"]
+    log(f"  {DISP_LEGS}-leg multi at {DISP_ALT_PROB:.0%} {mu['landed']}/{mu['multis']} landed "
         f"(model expected {mu['avg_model_prob']})")
 
     fixtures = read_upcoming(UPCOMING)
@@ -840,7 +872,7 @@ def main():
 
     blob = {
         "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "min_prob": MIN_PROB, "season": season, "round": round_name,
+        "min_prob": MIN_PROB, "disp_alt_prob": DISP_ALT_PROB, "season": season, "round": round_name,
         "data_to": games[-1]["date"],
         "model": {"elo_k": k, "h2h_used": use_h2h, "disposals_adjustment": VARIANTS[dv],
                   "advantage_pts": {"travel": round(tm.adv.coef[0], 2),
