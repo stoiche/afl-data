@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#152019">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C1A30">
 <title>AFL head to head</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
@@ -12,7 +12,126 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Head to Head">
 <meta name="mobile-web-app-capable" content="yes">
-<style>html,body{margin:0;padding:0;background:#152019;}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{
+  --board:#1C1A30; --panel:#2D2A4A; --rule:#3D3960;
+  --text:#F2F0FA; --muted:#9C98B8;
+  --lav:#A97FE3; --mint:#52F7A6; --warm:#FFB45C;
+  --cond:'Barlow Condensed','Oswald','Arial Narrow',sans-serif;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --shadow:0 10px 30px -12px rgba(8,6,24,.75),0 2px 6px rgba(8,6,24,.35);
+}
+html,body{margin:0;padding:0;background:#1C1A30;}
+*{box-sizing:border-box;}
+body{color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;}
+.page{position:relative;min-height:100vh;overflow:hidden;
+  padding:calc(26px + env(safe-area-inset-top)) 14px calc(60px + env(safe-area-inset-bottom));}
+.glow{position:absolute;top:-190px;left:50%;width:760px;height:480px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(169,127,227,.34),rgba(169,127,227,.10) 55%,rgba(169,127,227,0) 100%);
+  pointer-events:none;}
+.wrap{position:relative;max-width:920px;margin:0 auto;}
+h1{font-family:var(--cond);font-size:44px;font-weight:700;letter-spacing:-.01em;line-height:1;margin:0 0 8px;}
+.lede{color:var(--muted);margin:0 0 4px;font-size:15px;line-height:1.45;}
+.current{color:var(--muted);margin:0 0 24px;font-size:12.5px;}
+.muted{color:var(--muted);}
+
+.picker{display:grid;grid-template-columns:1fr;gap:10px;align-items:center;margin-bottom:24px;}
+.picker .v{display:none;font-family:var(--cond);color:var(--muted);font-size:20px;}
+select{width:100%;appearance:none;-webkit-appearance:none;color:var(--text);font:500 15px var(--body);
+  padding:13px 40px 13px 16px;border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow);
+  background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23A97FE3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 15px center;
+  transition:border-color .18s, box-shadow .18s;}
+select option{background:#2D2A4A;color:#F2F0FA;}
+
+.panel{background:linear-gradient(180deg,rgba(169,127,227,.07),rgba(169,127,227,0) 120px),var(--panel);
+  border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:18px 16px;margin-bottom:16px;}
+.panel.tally{background:linear-gradient(135deg,rgba(169,127,227,.20),rgba(169,127,227,.03) 60%),var(--panel);
+  padding:20px 20px;}
+.panel-title{font-family:var(--cond);font-size:26px;font-weight:600;line-height:1.1;}
+.sub-title{font-family:var(--cond);font-size:19px;font-weight:600;margin-bottom:5px;}
+.panel-note{color:var(--muted);font-size:13px;line-height:1.5;}
+.big{font-family:var(--cond);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+.win{color:var(--mint);}
+
+table{border-collapse:collapse;width:100%;}
+th,td{padding:8px 8px;text-align:right;font-size:13.5px;}
+th:first-child,td:first-child{text-align:left;padding-left:2px;}
+th:last-child,td:last-child{padding-right:2px;}
+th{color:var(--muted);font-weight:500;font-size:11.5px;border-bottom:1px solid var(--rule);}
+tbody{font-variant-numeric:tabular-nums;}
+tbody tr{border-bottom:1px solid rgba(61,57,96,.55);}
+tbody tr:last-child{border-bottom:none;}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.sum th,.sum td{white-space:nowrap;}
+.sum td.g{padding-top:5px;padding-bottom:5px;}
+
+.pill{font:500 12.5px var(--body);color:var(--muted);background:transparent;border:1px solid var(--rule);
+  border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;
+  transition:background .18s,color .18s,border-color .18s,box-shadow .18s;}
+.pill.on{background:var(--lav);border-color:var(--lav);color:var(--board);font-weight:600;
+  box-shadow:0 4px 14px -4px rgba(169,127,227,.6);}
+.pill:disabled{opacity:.38;cursor:default;}
+.pill .n{font-variant-numeric:tabular-nums;opacity:.75;font-weight:500;}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 14px 12px;margin:0 -14px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.list-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:26px 2px 10px;}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--lav);
+  border:1px solid rgba(169,127,227,.45);background:rgba(169,127,227,.12);border-radius:999px;padding:3px 10px;}
+.link{background:none;border:none;padding:0;color:var(--lav);font:500 12.5px var(--body);cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;}
+
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);
+  margin-bottom:10px;overflow:hidden;transition:border-color .18s, box-shadow .18s;}
+.card.open{border-color:rgba(169,127,227,.55);}
+.card-head{padding:14px 16px 15px;cursor:pointer;}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12.5px;color:var(--muted);margin-bottom:8px;}
+.score-row{width:100%;background:none;border:none;color:var(--text);padding:0;cursor:pointer;text-align:left;
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-radius:8px;}
+.score{font-family:var(--cond);font-size:23px;font-weight:600;line-height:1.2;}
+.score .pts{color:var(--muted);font-size:16px;}
+.more{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font:500 12.5px var(--body);white-space:nowrap;}
+.chev{transition:transform .32s cubic-bezier(.2,.8,.2,1);}
+.card.open .chev{transform:rotate(180deg);}
+.card.open .more{color:var(--lav);}
+.collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.2,.8,.2,1);}
+.card.open .collapse{grid-template-rows:1fr;}
+.collapse>div{overflow:hidden;min-height:0;}
+.collapse-inner{padding:4px 16px 18px;display:grid;gap:22px;opacity:0;transform:translateY(-6px);
+  transition:opacity .28s ease,transform .36s cubic-bezier(.2,.8,.2,1);}
+.card.open .collapse-inner{opacity:1;transform:none;}
+
+.wx{display:inline-flex;align-items:center;gap:5px;font:500 12px var(--body);color:var(--text);
+  background:rgba(28,26,48,.55);border:1px solid var(--rule);border-radius:13px;padding:3px 9px 3px 7px;cursor:pointer;flex-wrap:wrap;text-align:left;
+  transition:border-color .18s;max-width:100%;}
+.wx svg{flex:none;}
+.wx .st{white-space:nowrap;}
+.wx .nums{display:none;color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums;}
+.wx.show .nums{display:inline;}
+.wx.show{border-color:var(--lav);}
+
+button:focus-visible,select:focus-visible,.card-head:focus-visible{outline:2px solid var(--lav);outline-offset:2px;}
+@media (hover:hover){
+  select:hover,.pill:not(.on):not(:disabled):hover,.wx:hover{border-color:var(--lav);}
+  .pill:not(.on):not(:disabled):hover{color:var(--text);}
+  .card:hover{border-color:rgba(169,127,227,.55);}
+  .wx:hover .nums{display:inline;}
+}
+@media (min-width:561px){
+  .page{padding-left:18px;padding-right:18px;}
+  h1{font-size:50px;}
+  .picker{grid-template-columns:1fr auto 1fr;gap:12px;}
+  .picker .v{display:block;}
+  .panel{padding:20px 22px;border-radius:18px;}
+  .card{border-radius:18px;}
+  .score{font-size:25px;}
+  .chips{flex-wrap:wrap;overflow:visible;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -31,7 +150,10 @@ const { useState, useEffect, useMemo } = React;
 // ---------------------------------------------------------------------------
 const DATA_URL = "./h2h_compact.json";
 
-const BOARD="#152019", PANEL="#1c2b23", CHALK="#e8e3d4", AMBER="#e8b42c", MUTED="#7d9186", RULE="#2c4136";
+// 60 / 30 / 10: navy base, lavender for interactive states, mint as the one highlight.
+const BOARD="#1C1A30", PANEL="#2D2A4A", RULE="#3D3960", CHALK="#F2F0FA", MUTED="#9C98B8",
+      LAV="#A97FE3", MINT="#52F7A6", WARM="#FFB45C";
+const WX_ORDER=["Dry","Partly wet","Wet","Windy","Wet & windy","Hot","Roof closed"];
 const ROUND_NAMES={EF:"Elimination final",QF:"Qualifying final",SF:"Semi final",
   PF:"Preliminary final",GF:"Grand final","Wildcard Final":"Wildcard final"};
 const SHORT={EF:"EF",QF:"QF",SF:"SF",PF:"PF",GF:"GF","Wildcard Final":"WC"};
@@ -41,8 +163,16 @@ const shortRound=(r)=>isNum(r)?`R${r}`:(SHORT[r]||r);
 const pts=(gb)=>{const[g,b]=String(gb).split(".");const G=+g,B=+b;return Number.isFinite(G)&&Number.isFinite(B)?G*6+B:null;};
 const fmtDate=(d)=>`${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
 
+// Weather rides alongside "m" as [status index, rain mm, avg wind, max gust, max temp].
+// Older data files without it simply decode to null and the app shows nothing.
+function decodeWx(statuses,row){
+  if(!statuses||!Array.isArray(row)||statuses[row[0]]==null) return null;
+  const [s,rain,wind,gust,temp]=row;
+  return {status:statuses[s],rain,wind,gust,temp};
+}
+
 function decode(RAW){
-  const {t:teams,p:players,v:venues,m:recs}=RAW;
+  const {t:teams,p:players,v:venues,m:recs,ws:wxStatuses,w:wxRows}=RAW;
   return recs.map((rec,idx)=>{
     const parts=rec.split("^");
     const [d,tm,vIdx,rnd]=parts[0].split(",");
@@ -58,7 +188,7 @@ function decode(RAW){
       };
     });
     return {id:idx,date:d,dateLabel:fmtDate(d),time:`${tm.slice(0,2)}:${tm.slice(2)}`,
-            venue:venues[+vIdx],year:d.slice(0,4),round:rnd,sides};
+            venue:venues[+vIdx],year:d.slice(0,4),round:rnd,sides,wx:decodeWx(wxStatuses,wxRows&&wxRows[idx])};
   });
 }
 
@@ -69,6 +199,7 @@ function AflHeadToHead(){
   const [teamB,setTeamB]=useState("");
   const [openId,setOpenId]=useState(null);
   const [rankBy,setRankBy]=useState("total");
+  const [wxFilter,setWxFilter]=useState("All");
 
   useEffect(()=>{
     let live=true;
@@ -82,6 +213,7 @@ function AflHeadToHead(){
 
   const all=useMemo(()=>raw?decode(raw):[],[raw]);
   const teams=useMemo(()=>[...new Set(all.flatMap(m=>m.sides.map(s=>s.team)))].sort(),[all]);
+  const pick=(set)=>(e)=>{set(e.target.value);setOpenId(null);setWxFilter("All");};
 
   const matchups=useMemo(()=>{
     if(!teamA||!teamB||teamA===teamB) return [];
@@ -94,6 +226,17 @@ function AflHeadToHead(){
         return {...m,A,B,winner:A.points>B.points?teamA:B.points>A.points?teamB:"draw"};
       });
   },[all,teamA,teamB]);
+
+  // Weather filter. Drives the match list and the player summary below.
+  const wxCounts=useMemo(()=>{
+    const c={};
+    matchups.forEach(m=>{ if(m.wx) c[m.wx.status]=(c[m.wx.status]||0)+1; });
+    return c;
+  },[matchups]);
+  const hasWx=Object.keys(wxCounts).length>0;
+  const filtering=hasWx&&wxFilter!=="All";
+  const shown=useMemo(()=>filtering?matchups.filter(m=>m.wx&&m.wx.status===wxFilter):matchups,
+    [matchups,filtering,wxFilter]);
 
   const tally=useMemo(()=>{
     const t={[teamA]:0,[teamB]:0,draw:0};
@@ -118,14 +261,17 @@ function AflHeadToHead(){
       hi:Math.max(...totals), lo:Math.min(...totals)};
   },[matchups]);
 
+  // Minimum appearances: three normally, but never more than the games on show,
+  // so filtering down to one or two wet games still produces a table.
+  const minGames=Math.min(3,shown.length);
   const summary=useMemo(()=>{
-    if(!matchups.length) return [];
+    if(!shown.length) return [];
     const byPlayer=new Map();
-    matchups.forEach((m,gi)=>{
+    shown.forEach((m,gi)=>{
       m.sides.forEach(s=>{
         s.players.forEach(p=>{
           if(!byPlayer.has(p.name))
-            byPlayer.set(p.name,{name:p.name,team:s.team,cells:Array(matchups.length).fill(null)});
+            byPlayer.set(p.name,{name:p.name,team:s.team,cells:Array(shown.length).fill(null)});
           const rec=byPlayer.get(p.name);
           rec.cells[gi]={d:p.disposals,tog:p.tog};
           if(gi===0||!rec.seen){rec.team=s.team;rec.seen=true;}
@@ -137,45 +283,22 @@ function AflHeadToHead(){
       const total=played.reduce((a,c)=>a+c.d,0);
       return {...r,games:played.length,total,avg:total/played.length};
     })
-      .filter(r=>r.games>=3)
+      .filter(r=>r.games>=minGames)
       .sort((a,b)=>(rankBy==="avg"?b.avg-a.avg:b.total-a.total)||b.games-a.games)
       .slice(0,15);
-  },[matchups,rankBy]);
-
-  const cond=`'Barlow Condensed','Oswald','Arial Narrow',sans-serif`;
-  const body=`'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
-  const sel={background:PANEL,color:CHALK,border:`1px solid ${RULE}`,padding:"10px 12px",
-             fontSize:15,fontFamily:body,width:"100%",borderRadius:2};
-  const toggle=(on)=>({background:on?AMBER:"transparent",color:on?BOARD:MUTED,
-    border:`1px solid ${on?AMBER:RULE}`,padding:"5px 12px",fontSize:12.5,cursor:"pointer",
-    fontFamily:body,borderRadius:2});
+  },[shown,rankBy,minGames]);
 
   const shell=(inner)=>(
-    <div style={{background:BOARD,minHeight:"100vh",color:CHALK,fontFamily:body,padding:"28px 18px 60px"}}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500&display=swap');
-        *{box-sizing:border-box;}
-        table{border-collapse:collapse;width:100%;}
-        th,td{padding:7px 8px;text-align:right;font-size:13.5px;}
-        th:first-child,td:first-child{text-align:left;}
-        th{color:${MUTED};font-weight:500;font-size:11.5px;border-bottom:1px solid ${RULE};}
-        tbody tr{border-bottom:1px solid rgba(44,65,54,.45);}
-        button:focus-visible,select:focus-visible{outline:2px solid ${AMBER};outline-offset:2px;}
-        .wrap{max-width:920px;margin:0 auto;}
-        .picker{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;}
-        .scroll{overflow-x:auto;}
-        .sum th,.sum td{white-space:nowrap;}
-        .sum td.g{padding-top:5px;padding-bottom:5px;}
-        @media (max-width:560px){.picker{grid-template-columns:1fr;}.picker span{display:none;}}
-      `}</style>
+    <div className="page">
+      <div className="glow" aria-hidden="true"/>
       <div className="wrap">{inner}</div>
     </div>
   );
 
   if(err) return shell(
     <>
-      <h1 style={{fontFamily:cond,fontSize:40,fontWeight:700,margin:"0 0 10px"}}>Can&rsquo;t reach the data</h1>
-      <p style={{color:MUTED,fontSize:14,lineHeight:1.6}}>
+      <h1>Can&rsquo;t reach the data</h1>
+      <p className="muted" style={{fontSize:14,lineHeight:1.6}}>
         {err}. Check that <code style={{color:CHALK}}>DATA_URL</code> at the top of this file points at
         a <strong>public</strong> repo and that <code style={{color:CHALK}}>h2h_compact.json</code> has
         been committed. Opening the URL directly in a browser tab is the quickest test.
@@ -184,71 +307,72 @@ function AflHeadToHead(){
   );
 
   if(!raw) return shell(
-    <p style={{color:MUTED,fontSize:15,marginTop:40}}>Loading the latest results&hellip;</p>
+    <p className="muted" style={{fontSize:15,marginTop:40}}>Loading the latest results&hellip;</p>
   );
+
+  const nWord=(n)=>["no","one","two","three","four","five"][n]||n;
 
   return shell(
     <>
-      <h1 style={{fontFamily:cond,fontSize:46,fontWeight:700,letterSpacing:"-.01em",margin:"0 0 4px"}}>Head to head</h1>
-      <p style={{color:MUTED,margin:"0 0 4px",fontSize:15}}>
+      <h1>Head to head</h1>
+      <p className="lede">
         The last five meetings between any two clubs, with every player&rsquo;s game.
       </p>
-      <p style={{color:MUTED,margin:"0 0 26px",fontSize:12.5}}>
+      <p className="current">
         Data current to {raw.latest ? fmtDate(raw.latest.replace(/-/g,"")) : "\u2014"}
         {raw.built && ` \u00b7 rebuilt ${raw.built}`}
       </p>
 
-      <div className="picker" style={{marginBottom:28}}>
-        <select style={sel} value={teamA} onChange={e=>{setTeamA(e.target.value);setOpenId(null);}}>
+      <div className="picker">
+        <select aria-label="First club" value={teamA} onChange={pick(setTeamA)}>
           <option value="">Select a club</option>
           {teams.map(t=><option key={t} value={t}>{t}</option>)}
         </select>
-        <span style={{fontFamily:cond,color:MUTED,fontSize:20}}>v</span>
-        <select style={sel} value={teamB} onChange={e=>{setTeamB(e.target.value);setOpenId(null);}}>
+        <span className="v">v</span>
+        <select aria-label="Second club" value={teamB} onChange={pick(setTeamB)}>
           <option value="">Select a club</option>
           {teams.map(t=><option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 
-      {teamA&&teamB&&teamA===teamB&&<p style={{color:MUTED}}>Pick two different clubs.</p>}
+      {teamA&&teamB&&teamA===teamB&&<p className="muted">Pick two different clubs.</p>}
       {teamA&&teamB&&teamA!==teamB&&matchups.length===0&&
-        <p style={{color:MUTED}}>These two haven&rsquo;t met in the data.</p>}
-      {(!teamA||!teamB)&&<p style={{color:MUTED}}>Choose two clubs to see their recent record.</p>}
+        <p className="muted">These two haven&rsquo;t met in the data.</p>}
+      {(!teamA||!teamB)&&<p className="muted">Choose two clubs to see their recent record.</p>}
 
       {matchups.length>0&&(
         <>
-          <div style={{background:PANEL,borderLeft:`3px solid ${AMBER}`,padding:"18px 22px",marginBottom:24}}>
-            <div style={{fontFamily:cond,fontSize:42,fontWeight:700,lineHeight:1}}>
-              <span style={{color:tally[teamA]>tally[teamB]?AMBER:CHALK}}>{tally[teamA]}</span>
-              <span style={{color:MUTED,margin:"0 10px"}}>&ndash;</span>
-              <span style={{color:tally[teamB]>tally[teamA]?AMBER:CHALK}}>{tally[teamB]}</span>
+          <div className="panel tally">
+            <div className="big" style={{fontSize:46}}>
+              <span className={tally[teamA]>tally[teamB]?"win":""}>{tally[teamA]}</span>
+              <span className="muted" style={{margin:"0 10px"}}>&ndash;</span>
+              <span className={tally[teamB]>tally[teamA]?"win":""}>{tally[teamB]}</span>
             </div>
-            <div style={{color:MUTED,fontSize:14,marginTop:6}}>
+            <div className="muted" style={{fontSize:14,marginTop:8}}>
               {teamA} v {teamB}, last {matchups.length} meeting{matchups.length===1?"":"s"}
               {tally.draw>0&&`, ${tally.draw} drawn`}
             </div>
           </div>
 
-          <div style={{background:PANEL,padding:"18px 20px",marginBottom:26}}>
-            <div style={{fontFamily:cond,fontSize:26,fontWeight:600,lineHeight:1.1}}>Scoring</div>
-            <div style={{color:MUTED,fontSize:13,margin:"4px 0 16px"}}>
+          <div className="panel">
+            <div className="panel-title">Scoring</div>
+            <div className="panel-note" style={{margin:"4px 0 16px"}}>
               Points across these {scoring.games} games. Match total is both sides combined
               &mdash; {scoring.tot} in all, highest {scoring.hi}, lowest {scoring.lo}.
             </div>
 
-            <div style={{display:"flex",gap:26,flexWrap:"wrap",marginBottom:18,
-                         fontFamily:cond,fontSize:30,fontWeight:700,lineHeight:1}}>
+            <div className="big" style={{display:"flex",gap:26,flexWrap:"wrap",marginBottom:18,fontSize:30}}>
               <div>
-                <span style={{color:scoring.a>scoring.b?AMBER:CHALK}}>{scoring.a}</span>
-                <span style={{color:MUTED,margin:"0 8px"}}>&ndash;</span>
-                <span style={{color:scoring.b>scoring.a?AMBER:CHALK}}>{scoring.b}</span>
-                <div style={{fontFamily:body,fontSize:12,fontWeight:400,color:MUTED,marginTop:6}}>
+                <span className={scoring.a>scoring.b?"win":""}>{scoring.a}</span>
+                <span className="muted" style={{margin:"0 8px"}}>&ndash;</span>
+                <span className={scoring.b>scoring.a?"win":""}>{scoring.b}</span>
+                <div className="muted" style={{fontFamily:"var(--body)",fontSize:12,fontWeight:400,marginTop:6}}>
                   {teamA} v {teamB}, points for
                 </div>
               </div>
               <div>
                 <span>{(scoring.tot/scoring.games).toFixed(1)}</span>
-                <div style={{fontFamily:body,fontSize:12,fontWeight:400,color:MUTED,marginTop:6}}>
+                <div className="muted" style={{fontFamily:"var(--body)",fontSize:12,fontWeight:400,marginTop:6}}>
                   average match total
                 </div>
               </div>
@@ -259,17 +383,17 @@ function AflHeadToHead(){
                 <thead><tr>
                   <th>Ground</th><th>Game</th><th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Margin</th>
                 </tr></thead>
-                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+                <tbody>
                   {matchups.map(m=>{
                     const a=m.A.points??0, b=m.B.points??0;
                     return (
                       <tr key={m.id}>
                         <td>{m.venue}</td>
-                        <td style={{color:MUTED,fontSize:12.5}}>{shortRound(m.round)} &rsquo;{m.year.slice(2)}</td>
-                        <td style={{color:m.winner===teamA?AMBER:CHALK}}>{a}</td>
-                        <td style={{color:m.winner===teamB?AMBER:CHALK}}>{b}</td>
+                        <td className="muted" style={{fontSize:12.5}}>{shortRound(m.round)} &rsquo;{m.year.slice(2)}</td>
+                        <td className={m.winner===teamA?"win":""}>{a}</td>
+                        <td className={m.winner===teamB?"win":""}>{b}</td>
                         <td style={{fontWeight:600}}>{a+b}</td>
-                        <td style={{color:MUTED}}>{a===b?"draw":Math.abs(a-b)}</td>
+                        <td className="muted">{a===b?"draw":Math.abs(a-b)}</td>
                       </tr>
                     );
                   })}
@@ -277,21 +401,21 @@ function AflHeadToHead(){
               </table>
             </div>
 
-            <div style={{fontFamily:cond,fontSize:19,fontWeight:600,marginBottom:5}}>By ground</div>
+            <div className="sub-title">By ground</div>
             <div className="scroll">
               <table className="sum">
                 <thead><tr>
                   <th>Ground</th><th>Games</th><th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Avg total</th>
                 </tr></thead>
-                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+                <tbody>
                   {scoring.venues.map(v=>(
                     <tr key={v.venue}>
                       <td>{v.venue}</td>
-                      <td style={{color:MUTED}}>{v.games}</td>
-                      <td style={{color:v.a>v.b?AMBER:CHALK}}>{v.a}</td>
-                      <td style={{color:v.b>v.a?AMBER:CHALK}}>{v.b}</td>
+                      <td className="muted">{v.games}</td>
+                      <td className={v.a>v.b?"win":""}>{v.a}</td>
+                      <td className={v.b>v.a?"win":""}>{v.b}</td>
                       <td style={{fontWeight:600}}>{v.total}</td>
-                      <td style={{color:MUTED}}>{(v.total/v.games).toFixed(1)}</td>
+                      <td className="muted">{(v.total/v.games).toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -299,87 +423,124 @@ function AflHeadToHead(){
             </div>
           </div>
 
-          <div style={{background:PANEL,padding:"18px 20px",marginBottom:26}}>
+          <div className="panel">
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",
                          gap:14,flexWrap:"wrap",marginBottom:14}}>
-              <div>
-                <div style={{fontFamily:cond,fontSize:26,fontWeight:600,lineHeight:1.1}}>
-                  Leading ball-winners
-                </div>
-                <div style={{color:MUTED,fontSize:13,marginTop:4}}>
-                  Top 15 by disposals, minimum three of these five games. Each cell is disposals
+              <div style={{flex:"1 1 260px"}}>
+                <div className="panel-title">Leading ball-winners</div>
+                <div className="panel-note" style={{marginTop:4}}>
+                  Top 15 by disposals, minimum {nWord(minGames)} of {filtering?"the":"these"} {nWord(shown.length)} game{shown.length===1?"":"s"}{filtering?" shown":""}. Each cell is disposals
                   with time on ground beneath. Games read newest first.
                 </div>
-              </div>
-              <div style={{display:"flex",gap:6}}>
-                <button style={toggle(rankBy==="total")} onClick={()=>setRankBy("total")}>Total</button>
-                <button style={toggle(rankBy==="avg")} onClick={()=>setRankBy("avg")}>Average</button>
-              </div>
-            </div>
-
-            <div className="scroll">
-              <table className="sum">
-                <thead>
-                  <tr>
-                    <th>Player</th><th>Club</th><th>Games</th>
-                    <th style={{color:rankBy==="total"?AMBER:MUTED}}>Total</th>
-                    <th style={{color:rankBy==="avg"?AMBER:MUTED}}>Avg</th>
-                    {matchups.map(m=>(
-                      <th key={m.id} title={`${roundLabel(m.round)} ${m.year} · ${m.venue}`}>
-                        {shortRound(m.round)} &rsquo;{m.year.slice(2)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody style={{fontVariantNumeric:"tabular-nums"}}>
-                  {summary.map((r,i)=>(
-                    <tr key={r.name}>
-                      <td style={{color:i<3?AMBER:CHALK}}>{r.name}</td>
-                      <td style={{color:MUTED,fontSize:12.5}}>{r.team}</td>
-                      <td style={{color:MUTED}}>{r.games}</td>
-                      <td style={{fontWeight:rankBy==="total"?600:400}}>{r.total}</td>
-                      <td style={{fontWeight:rankBy==="avg"?600:400}}>{r.avg.toFixed(1)}</td>
-                      {r.cells.map((c,ci)=>(
-                        <td className="g" key={ci}>
-                          {c?(<><div>{c.d}</div>
-                               <div style={{color:MUTED,fontSize:11}}>{c.tog?`${c.tog}%`:"\u2013"}</div></>
-                          ):<span style={{color:RULE}}>&mdash;</span>}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {summary.length===0&&
-              <p style={{color:MUTED,fontSize:13,margin:0}}>No player appeared in three of these games.</p>}
-          </div>
-
-          {matchups.map(m=>{
-            const open=openId===m.id;
-            return (
-              <div key={m.id} style={{background:PANEL,marginBottom:9}}>
-                <button onClick={()=>setOpenId(open?null:m.id)} aria-expanded={open}
-                  style={{width:"100%",background:"none",border:"none",color:CHALK,padding:"15px 18px",
-                          cursor:"pointer",textAlign:"left",fontFamily:body,display:"grid",
-                          gridTemplateColumns:"1fr auto",gap:12,alignItems:"center"}}>
-                  <div>
-                    <div style={{fontSize:12.5,color:MUTED,marginBottom:5}}>
-                      {m.dateLabel} &middot; {m.time} &middot; {m.venue} &middot; {roundLabel(m.round)} {m.year}
-                    </div>
-                    <div style={{fontFamily:cond,fontSize:24,fontWeight:600}}>
-                      <Side s={m.A} win={m.winner===teamA}/>
-                      <span style={{color:MUTED,margin:"0 9px"}}>v</span>
-                      <Side s={m.B} win={m.winner===teamB}/>
-                    </div>
-                  </div>
-                  <span style={{color:MUTED,fontSize:12.5,whiteSpace:"nowrap"}}>{open?"Hide":"Players"}</span>
-                </button>
-                {open&&(
-                  <div style={{padding:"0 18px 18px",display:"grid",gap:24}}>
-                    {[m.A,m.B].map(s=><PlayerTable key={s.team} side={s}/>)}
+                {filtering&&(
+                  <div style={{marginTop:9,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                    <span className="tag"><WxIcon status={wxFilter} size={13}/>{wxFilter} games only &middot; {shown.length} of {matchups.length}</span>
+                    <button className="link" onClick={()=>setWxFilter("All")}>Show all</button>
                   </div>
                 )}
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                <button className={`pill${rankBy==="total"?" on":""}`} aria-pressed={rankBy==="total"} onClick={()=>setRankBy("total")}>Total</button>
+                <button className={`pill${rankBy==="avg"?" on":""}`} aria-pressed={rankBy==="avg"} onClick={()=>setRankBy("avg")}>Average</button>
+              </div>
+            </div>
+
+            {summary.length>0&&(
+              <div className="scroll">
+                <table className="sum">
+                  <thead>
+                    <tr>
+                      <th>Player</th><th>Club</th><th>Games</th>
+                      <th style={{color:rankBy==="total"?LAV:MUTED}}>Total</th>
+                      <th style={{color:rankBy==="avg"?LAV:MUTED}}>Avg</th>
+                      {shown.map(m=>(
+                        <th key={m.id} title={`${roundLabel(m.round)} ${m.year} · ${m.venue}`}>
+                          {shortRound(m.round)} &rsquo;{m.year.slice(2)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.map((r,i)=>(
+                      <tr key={r.name}>
+                        <td className={i<3?"win":""} style={{fontWeight:i<3?500:400}}>{r.name}</td>
+                        <td className="muted" style={{fontSize:12.5}}>{r.team}</td>
+                        <td className="muted">{r.games}</td>
+                        <td style={{fontWeight:rankBy==="total"?600:400}}>{r.total}</td>
+                        <td style={{fontWeight:rankBy==="avg"?600:400}}>{r.avg.toFixed(1)}</td>
+                        {r.cells.map((c,ci)=>(
+                          <td className="g" key={ci}>
+                            {c?(<><div>{c.d}</div>
+                                 <div className="muted" style={{fontSize:11}}>{c.tog?`${c.tog}%`:"\u2013"}</div></>
+                            ):<span style={{color:RULE}}>&mdash;</span>}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {summary.length===0&&
+              <p className="panel-note" style={{margin:0}}>
+                {shown.length===0?"No games match this weather filter.":"No player appeared in three of these games."}
+              </p>}
+          </div>
+
+          <div className="list-head">
+            <div className="panel-title">Matches</div>
+            {filtering&&<span className="muted" style={{fontSize:12.5}}>{shown.length} of {matchups.length}</span>}
+          </div>
+
+          {hasWx&&(
+            <div className="chips" role="group" aria-label="Filter by match weather">
+              {["All",...WX_ORDER].map(s=>{
+                const n=s==="All"?matchups.length:(wxCounts[s]||0);
+                const on=wxFilter===s;
+                return (
+                  <button key={s} className={`pill${on?" on":""}`} aria-pressed={on}
+                    disabled={n===0&&!on}
+                    onClick={()=>{setWxFilter(s);setOpenId(null);}}>
+                    {s!=="All"&&<WxIcon status={s} size={14} mono={on}/>}
+                    {s}<span className="n">{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {shown.length===0&&<p className="muted" style={{fontSize:14}}>No games match this weather filter.</p>}
+
+          {shown.map(m=>{
+            const open=openId===m.id;
+            return (
+              <div key={m.id} className={`card${open?" open":""}`}>
+                <div className="card-head" onClick={()=>setOpenId(open?null:m.id)}>
+                  <div className="meta">
+                    <span>{m.dateLabel} &middot; {m.time} &middot; {m.venue} &middot; {roundLabel(m.round)} {m.year}</span>
+                    <WxBadge wx={m.wx}/>
+                  </div>
+                  <button className="score-row" aria-expanded={open}>
+                    <span className="score">
+                      <Side s={m.A} win={m.winner===teamA}/>
+                      <span className="muted" style={{margin:"0 9px"}}>v</span>
+                      <Side s={m.B} win={m.winner===teamB}/>
+                    </span>
+                    <span className="more">
+                      {open?"Hide":"Players"}
+                      <svg className="chev" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
+                        <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+                <div className="collapse" aria-hidden={!open}>
+                  <div>
+                    <div className="collapse-inner">
+                      {[m.A,m.B].map(s=><PlayerTable key={s.team} side={s}/>)}
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -391,24 +552,85 @@ function AflHeadToHead(){
 
 function Side({s,win}){
   return (
-    <span style={{color:win?AMBER:CHALK}}>
+    <span className={win?"win":""} style={{display:"inline-block"}}>
       {s.team} <span style={{fontVariantNumeric:"tabular-nums"}}>{s.gb}</span>
-      {s.points!=null&&<span style={{color:MUTED,fontSize:16}}> ({s.points})</span>}
+      {s.points!=null&&<span className="pts"> ({s.points})</span>}
     </span>
   );
+}
+
+// Status icon + label. Hover (desktop) or tap (phone) reveals the raw numbers.
+function WxBadge({wx}){
+  const [show,setShow]=useState(false);
+  if(!wx) return null;
+  const f=(n,d=0)=>Number(n).toFixed(d);
+  const nums=[
+    wx.rain!=null&&`${f(wx.rain,1)} mm`,
+    wx.wind!=null&&`${f(wx.wind)} km/h wind`,
+    wx.gust!=null&&`${f(wx.gust)} km/h gusts`,
+    wx.temp!=null&&`${f(wx.temp)}\u00b0C`,
+  ].filter(Boolean).join(" \u00b7 ");
+  return (
+    <button type="button" className={`wx${show?" show":""}`} aria-expanded={nums?show:undefined}
+      aria-label={nums?`${wx.status}: ${nums}`:wx.status}
+      onClick={(e)=>{e.stopPropagation(); if(nums) setShow(v=>!v);}}>
+      <WxIcon status={wx.status} size={15}/>
+      <span className="st">{wx.status}</span>
+      {nums&&<span className="nums">{nums}</span>}
+    </button>
+  );
+}
+
+// Inline SVG weather icons, 24x24 grid, palette colours only (Hot is the one
+// warm exception). mono=true draws in currentColor for use on a filled chip.
+function WxIcon({status,size=16,mono=false}){
+  const c=(col)=>mono?"currentColor":col;
+  const P={fill:"none",strokeWidth:1.9,strokeLinecap:"round",strokeLinejoin:"round"};
+  const cloud=(col,d="M7 15.5a4 4 0 0 1 .6-7.95 5.2 5.2 0 0 1 10 1.3A3.4 3.4 0 0 1 17 15.5Z")=>
+    <path d={d} stroke={c(col)} {...P}/>;
+  const sun=(col)=>(
+    <g stroke={c(col)} {...P}>
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>
+    </g>);
+  let art;
+  switch(status){
+    case "Dry": art=sun(MUTED); break;
+    case "Hot": art=sun(WARM); break;
+    case "Partly wet": art=(<>{cloud(MUTED)}<path d="M12 18.5v2.5" stroke={c(LAV)} {...P}/></>); break;
+    case "Wet": art=(<>{cloud(LAV)}<path d="M8 18.5l-.8 2.5M12.4 18.5l-.8 2.5M16.8 18.5l-.8 2.5" stroke={c(LAV)} {...P}/></>); break;
+    case "Windy": art=(
+      <g stroke={c(LAV)} {...P}>
+        <path d="M3 9h10.5a2.5 2.5 0 1 0-2.4-3.2"/>
+        <path d="M3 13h15a2.6 2.6 0 1 1-2.5 3.4"/>
+        <path d="M3 17h7"/>
+      </g>); break;
+    case "Wet & windy": art=(
+      <>
+        {cloud(LAV,"M8 12.5a3.4 3.4 0 0 1 .5-6.75 4.4 4.4 0 0 1 8.5 1.1 2.9 2.9 0 0 1-.5 5.65Z")}
+        <path d="M3 16.5h11.5a2 2 0 1 1-1.9 2.6M17 16.5l-.9 3M20.5 16.5l-.9 3" stroke={c(LAV)} {...P}/>
+      </>); break;
+    case "Roof closed": art=(
+      <g stroke={c(MUTED)} {...P}>
+        <path d="M3 14a9 9 0 0 1 18 0"/>
+        <path d="M2.5 14h19M5 14v5M19 14v5M3.5 19h17"/>
+      </g>); break;
+    default: return null;
+  }
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">{art}</svg>;
 }
 
 function PlayerTable({side}){
   const ps=[...side.players].sort((a,b)=>b.disposals-a.disposals);
   return (
     <div>
-      <div style={{fontFamily:`'Barlow Condensed',sans-serif`,fontSize:19,fontWeight:600,marginBottom:5}}>{side.team}</div>
+      <div className="sub-title">{side.team}</div>
       <div className="scroll">
         <table>
           <thead><tr>
             <th>Player</th><th>Disp</th><th>Kicks</th><th>HB</th><th>Goals</th><th>TOG</th>
           </tr></thead>
-          <tbody style={{fontVariantNumeric:"tabular-nums"}}>
+          <tbody>
             {ps.map((p,i)=>(
               <tr key={p.name+i}>
                 <td>{p.name}</td><td>{p.disposals}</td><td>{p.kicks}</td>
