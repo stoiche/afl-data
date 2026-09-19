@@ -1,11 +1,12 @@
 # Save as .github/workflows/afl-update.yml in a PUBLIC GitHub repo that also
-# contains update_afl_data.R, fetch_weather.py, build_h2h_json.py and
-# afl_player_games_2015_2026.csv.
+# contains update_afl_data.R, fetch_weather.py, build_h2h_json.py,
+# fetch_upcoming.R, predict.py and afl_player_games_2015_2026.csv.
 #
 # Each run: re-scrapes the current season from AFL Tables, rewrites the master
 # CSV, tops up weather_cache.json with match-time weather for any new games,
-# rebuilds h2h_compact.json, and commits whatever changed. The app fetches
-# that JSON, so a successful run is all it takes for the app to show new results.
+# rebuilds h2h_compact.json, fetches the next round's fixture and lineups, rebuilds
+# the tips in predictions.json, and commits whatever changed. The app fetches both
+# JSON files, so a successful run is all it takes for the app to show new results.
 
 name: AFL data update
 
@@ -53,15 +54,28 @@ jobs:
         # breaks, which stops a corrupt JSON reaching the app.
         run: python3 build_h2h_json.py afl_player_games_2015_2026.csv h2h_compact.json
 
+      - name: Fetch next round's fixture and lineups
+        # Writes a header-only upcoming.csv and exits 0 on any failure; the
+        # continue-on-error is a second safety net. Tips must never block stats.
+        continue-on-error: true
+        run: Rscript fetch_upcoming.R upcoming.csv
+
+      - name: Build tips
+        # Stdlib only. Imports fetch_weather.py for the venue list and labels.
+        continue-on-error: true
+        run: python3 predict.py afl_player_games_2015_2026.csv weather_cache.json upcoming.csv predictions.json
+
       - name: Commit if anything changed
         run: |
           git config user.name  "afl-data-bot"
           git config user.email "afl-data-bot@users.noreply.github.com"
-          rm -f afl_player_games_2015_2026.csv.bak weather_cache.json.tmp
+          rm -f afl_player_games_2015_2026.csv.bak weather_cache.json.tmp predictions.json.tmp
           # Stage first: weather_cache.json is untracked on its first run, and a
           # plain "git diff" can't see untracked files.
           git add afl_player_games_2015_2026.csv h2h_compact.json
           if [ -f weather_cache.json ]; then git add weather_cache.json; fi
+          if [ -f upcoming.csv ];       then git add upcoming.csv; fi
+          if [ -f predictions.json ];   then git add predictions.json; fi
           if git diff --cached --quiet; then
             echo "No new results."
           else
