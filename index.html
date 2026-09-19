@@ -113,6 +113,44 @@ tbody tr:last-child{border-bottom:none;}
 .wx.show .nums{display:inline;}
 .wx.show{border-color:var(--lav);}
 
+/* ---- Tabs + Tips ---- */
+.tabs{display:inline-flex;gap:4px;padding:4px;margin:0 0 22px;background:rgba(45,42,74,.8);
+  border:1px solid var(--rule);border-radius:999px;box-shadow:var(--shadow);}
+.tab{font:600 13px var(--body);color:var(--muted);background:transparent;border:none;border-radius:999px;
+  padding:8px 18px;cursor:pointer;transition:background .18s,color .18s;}
+.tab.on{background:var(--lav);color:var(--board);box-shadow:0 4px 14px -4px rgba(169,127,227,.6);}
+.tip{padding:16px 16px 6px;}
+.tip-teams{font-family:var(--cond);font-size:25px;font-weight:600;line-height:1.15;margin-bottom:4px;}
+.tip-model{font-size:12.5px;color:var(--muted);margin-bottom:4px;}
+.tip-note{font-size:12px;color:var(--warm);margin-top:4px;}
+.mkt{border-top:1px solid rgba(61,57,96,.7);padding:13px 0 14px;}
+.mkt-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.mkt-label{font:600 10.5px var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.mkt-pick{font-family:var(--cond);font-size:21px;font-weight:600;line-height:1.2;margin-top:2px;}
+.mkt-pick.none{font-family:var(--body);font-size:13.5px;font-weight:500;color:var(--muted);margin-top:5px;}
+.mkt-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.mkt-prob{font-family:var(--cond);font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--mint);white-space:nowrap;}
+.mkt-prob.off{color:var(--muted);}
+.bar{height:6px;border-radius:999px;background:rgba(28,26,48,.7);overflow:hidden;margin-top:8px;position:relative;}
+.bar>i{display:block;height:100%;border-radius:999px;background:var(--mint);}
+.bar.off>i{background:var(--rule);}
+.bar.thin{height:4px;margin-top:5px;}
+.bar>b{position:absolute;top:0;bottom:0;width:2px;background:var(--lav);opacity:.9;}
+.leg{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline;margin-top:9px;font-size:13.5px;}
+.leg .thr{font-family:var(--cond);font-size:17px;font-weight:600;margin-left:6px;}
+.leg .p{font-variant-numeric:tabular-nums;color:var(--mint);font-weight:600;font-size:13px;}
+.leg .bar{grid-column:1 / -1;}
+.odds{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:10px;font-size:12px;color:var(--muted);}
+.odds input{width:108px;font:500 16px var(--body);color:var(--text);background:rgba(28,26,48,.55);
+  border:1px solid var(--rule);border-radius:10px;padding:6px 10px;font-variant-numeric:tabular-nums;}
+.odds input::placeholder{color:var(--muted);font-size:12.5px;}
+.odds input:focus{outline:none;border-color:var(--lav);}
+.value{font:700 10.5px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--board);
+  background:var(--mint);border-radius:999px;padding:3px 9px;}
+.bt-note{display:inline-block;margin-top:9px;font-size:11.5px;color:var(--lav);
+  border:1px solid rgba(169,127,227,.45);background:rgba(169,127,227,.12);border-radius:999px;padding:2px 9px;}
+.foot{color:var(--muted);font-size:11.5px;line-height:1.5;margin:26px 2px 0;text-align:center;}
+
 button:focus-visible,select:focus-visible,.card-head:focus-visible{outline:2px solid var(--lav);outline-offset:2px;}
 @media (hover:hover){
   select:hover,.pill:not(.on):not(:disabled):hover,.wx:hover{border-color:var(--lav);}
@@ -129,6 +167,8 @@ button:focus-visible,select:focus-visible,.card-head:focus-visible{outline:2px s
   .card{border-radius:18px;}
   .score{font-size:25px;}
   .chips{flex-wrap:wrap;overflow:visible;}
+  .tip{padding:18px 22px 8px;}
+  .tip-teams{font-size:28px;}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
 </style>
@@ -149,6 +189,7 @@ const { useState, useEffect, useMemo } = React;
 // headers for public repos, which is what lets the app read it from a browser.
 // ---------------------------------------------------------------------------
 const DATA_URL = "./h2h_compact.json";
+const TIPS_URL = "./predictions.json";   // written by predict.py, same folder
 
 // 60 / 30 / 10: navy base, lavender for interactive states, mint as the one highlight.
 const BOARD="#1C1A30", PANEL="#2D2A4A", RULE="#3D3960", CHALK="#F2F0FA", MUTED="#9C98B8",
@@ -288,12 +329,7 @@ function AflHeadToHead(){
       .slice(0,15);
   },[shown,rankBy,minGames]);
 
-  const shell=(inner)=>(
-    <div className="page">
-      <div className="glow" aria-hidden="true"/>
-      <div className="wrap">{inner}</div>
-    </div>
-  );
+  const shell=(inner)=>(<>{inner}</>);   // the page frame lives in <App/>
 
   if(err) return shell(
     <>
@@ -663,7 +699,240 @@ function PlayerTable({side}){
 }
 
 
-ReactDOM.createRoot(document.getElementById("root")).render(<AflHeadToHead />);
+// ---------------------------------------------------------------------------
+// Tips tab. Everything shown here is computed by predict.py; the app only
+// displays it, remembers any bookie odds typed in, and compares the two.
+// ---------------------------------------------------------------------------
+const ODDS_KEY="afl-tips-odds";
+const loadOdds=()=>{try{return JSON.parse(localStorage.getItem(ODDS_KEY))||{};}catch(e){return {};}};
+const saveOdds=(o)=>{try{localStorage.setItem(ODDS_KEY,JSON.stringify(o));}catch(e){}};
+const pct=(p,d=0)=>p==null?"\u2014":`${(p*100).toFixed(d)}%`;
+const MARKET_NAMES={winner:"Winner",line:"Line",total:"Total",disposals:"Disposals"};
+
+function tipDate(date,time){
+  const [y,m,d]=date.split("-").map(Number);
+  const day=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(Date.UTC(y,m-1,d)).getUTCDay()];
+  return `${day} ${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")} \u00b7 ${time} local`;
+}
+
+function Bar({p,off=false,thin=false,mark=null}){
+  const w=Math.max(0,Math.min(100,(p||0)*100));
+  return (
+    <div className={`bar${off?" off":""}${thin?" thin":""}`} role="img" aria-label={`Model probability ${pct(p)}`}>
+      <i style={{width:`${w}%`}}/>
+      {mark!=null&&mark>0&&mark<1&&<b style={{left:`calc(${mark*100}% - 1px)`}} title={`Bookie implied ${pct(mark,1)}`}/>}
+    </div>
+  );
+}
+
+function OddsRow({id,prob,odds,setOdds}){
+  const raw=odds[id]||"";
+  const n=parseFloat(raw);
+  const ok=Number.isFinite(n)&&n>1;
+  const implied=ok?1/n:null;
+  return (
+    <div className="odds">
+      <input type="text" inputMode="decimal" placeholder="Bookie odds" aria-label="Bookie odds (decimal)"
+        value={raw} onChange={(e)=>setOdds(id,e.target.value.replace(/[^0-9.]/g,"").slice(0,6))}/>
+      {ok&&<span>Implied {pct(implied,1)} vs model {pct(prob,1)}</span>}
+      {ok&&prob>implied&&<span className="value">Value</span>}
+    </div>
+  );
+}
+
+function Market({name,label,pick,oddsKey,sub,prob,none,gameId,bt,minProb,odds,setOdds,children}){
+  // Odds are remembered per game + market + exact pick, so they never carry over to a changed line.
+  const id=`${gameId}|${name}|${oddsKey||pick||""}`;
+  const n=parseFloat(odds[id]); const implied=Number.isFinite(n)&&n>1?1/n:null;
+  const weak=bt&&bt.rate!=null&&bt.picks>0&&bt.rate<minProb;
+  return (
+    <div className="mkt">
+      <div className="mkt-top">
+        <div>
+          <div className="mkt-label">{label||MARKET_NAMES[name]}</div>
+          {none?<div className="mkt-pick none">{none}</div>:<div className="mkt-pick">{pick}</div>}
+          {sub&&<div className="mkt-sub">{sub}</div>}
+        </div>
+        {prob!=null&&<div className={`mkt-prob${none?" off":""}`}>{pct(prob)}</div>}
+      </div>
+      {children}
+      {prob!=null&&<Bar p={prob} off={!!none} mark={none?null:implied}/>}
+      {!none&&prob!=null&&<OddsRow id={id} prob={prob} odds={odds} setOdds={setOdds}/>}
+      {!none&&weak&&<div className="bt-note">Backtest: landed {pct(bt.rate,1)}</div>}
+    </div>
+  );
+}
+
+function TipCard({g,bt,minProb,odds,setOdds}){
+  const mk=g.markets||{}, M=(bt&&bt.markets)||{};
+  const common={gameId:g.id,minProb,odds,setOdds};
+  const cut=`${Math.round(minProb*100)}%+`;
+  const m=g.pred?g.pred.margin:null;
+  const legs=(mk.disposals&&mk.disposals.legs)||[];
+  return (
+    <div className="card tip">
+      <div className="meta">
+        <span>{tipDate(g.date,g.time)} &middot; {g.venue}{g.round?` \u00b7 ${g.round}`:""}</span>
+        {g.weather?<WxBadge wx={g.weather}/>:<span>Forecast not available yet</span>}
+      </div>
+      <div className="tip-teams">{g.home} <span className="muted" style={{margin:"0 5px"}}>v</span> {g.away}</div>
+      {g.pred&&(
+        <div className="tip-model">
+          Model: {Math.abs(m)<0.5?"dead even":`${m>0?g.home:g.away} by ${Math.abs(m).toFixed(0)}`} &middot; {g.pred.home_score}&ndash;{g.pred.away_score} &middot; total {g.pred.total.toFixed(0)}
+          {g.weather&&" \u00b7 forecast weather"}
+        </div>
+      )}
+      {(g.notes||[]).map((n,i)=><div className="tip-note" key={i}>{n}</div>)}
+      <div style={{marginTop:12}}>
+        {mk.winner
+          ?<Market name="winner" {...common} bt={M.winner} pick={mk.winner.pick} prob={mk.winner.prob}
+              none={mk.winner.pick?null:`No ${cut} pick`}
+              sub={mk.winner.pick?null:`Leans ${mk.winner.lean}`}/>
+          :<Market name="winner" {...common} none="Not enough history yet"/>}
+        {mk.line&&<Market name="line" {...common} bt={M.line} pick={mk.line.pick} prob={mk.line.prob}
+              sub={`Smallest start either side covers at ${cut}`}/>}
+        {mk.total&&<Market name="total" {...common} bt={M.total} pick={mk.total.pick} prob={mk.total.prob}
+              sub={`Closer side to the predicted ${g.pred.total.toFixed(0)} \u00b7 other side ${mk.total.other}`}/>}
+        {mk.disposals&&(legs.length
+          ?<Market name="disposals" {...common} bt={M.disposals}
+              label={`Disposals \u00b7 ${legs.length}-leg multi`}
+              pick={`${legs.length} leg${legs.length===1?"":"s"} combined`}
+              oddsKey={legs.map(l=>`${l.player} ${l.threshold}+`).join(",")}
+              prob={mk.disposals.combined}
+              sub="Approximate: legs treated as independent">
+              {legs.map(l=>(
+                <div className="leg" key={l.player+l.team}>
+                  <span>{l.player}<span className="thr">{l.threshold}+</span>
+                    <span className="muted" style={{fontSize:11.5,marginLeft:7}}>{l.team} &middot; avg {l.avg}</span></span>
+                  <span className="p">{pct(l.prob)}</span>
+                  <Bar p={l.prob} thin/>
+                </div>
+              ))}
+              <div className="mkt-sub" style={{marginTop:12}}>Combined</div>
+            </Market>
+          :<Market name="disposals" {...common} none={`No ${cut} pick`}/>)}
+      </div>
+    </div>
+  );
+}
+
+function ModelRecord({bt,minProb}){
+  if(!bt||!bt.markets) return null;
+  const rows=["winner","line","total","disposals"].map(k=>[MARKET_NAMES[k],bt.markets[k]]).filter(r=>r[1]);
+  const cell=(b)=>b&&b.picks?<>{pct(b.rate)}<div className="muted" style={{fontSize:11}}>{b.landed}/{b.picks}</div></>
+                            :<span style={{color:RULE}}>&mdash;</span>;
+  const labels=(rows[0]&&rows[0][1].buckets||[]).map(b=>b.label);
+  const mu=bt.multi;
+  return (
+    <div className="panel">
+      <div className="panel-title">Model record</div>
+      <div className="panel-note" style={{margin:"4px 0 14px"}}>
+        Backtest over {(bt.seasons||[]).join(" and ")} ({bt.games} games): each round tipped using only what was
+        known before it. How often picks at {pct(minProb)}+ actually landed, by the probability the model gave them.
+      </div>
+      <div className="scroll">
+        <table className="sum">
+          <thead><tr><th>Market</th><th>Picks</th><th>Landed</th>{labels.map(l=><th key={l}>{l}%</th>)}</tr></thead>
+          <tbody>
+            {rows.map(([name,m])=>(
+              <tr key={name}>
+                <td>{name}</td>
+                <td className="muted">{m.picks}</td>
+                <td className={m.rate!=null&&m.rate>=minProb?"win":""} style={{fontWeight:600,color:m.rate!=null&&m.rate<minProb?LAV:undefined}}>{pct(m.rate,1)}</td>
+                {m.buckets.map(b=><td className="g" key={b.label}>{cell(b)}</td>)}
+              </tr>
+            ))}
+            {mu&&(
+              <tr>
+                <td>{mu.legs}-leg disposal multi</td>
+                <td className="muted">{mu.multis}</td>
+                <td style={{fontWeight:600}}>{pct(mu.rate,1)}</td>
+                <td className="muted" colSpan={labels.length} style={{fontSize:12}}>
+                  {mu.avg_model_prob!=null?`model expected ${pct(mu.avg_model_prob,1)} (legs as independent)`:""}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="panel-note" style={{marginTop:12}}>
+        Average miss: {bt.margin_mae} points on the margin, {bt.total_mae} on the total.
+      </div>
+    </div>
+  );
+}
+
+function Tips(){
+  const [data,setData]=useState(undefined);      // undefined = loading, null = missing
+  const [odds,setOddsState]=useState(loadOdds);
+  useEffect(()=>{
+    let live=true;
+    fetch(TIPS_URL,{cache:"no-store"})
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(j=>{ if(live) setData(j&&typeof j==="object"?j:null); })
+      .catch(()=>{ if(live) setData(null); });
+    return ()=>{live=false;};
+  },[]);
+  const setOdds=(id,v)=>setOddsState(o=>{
+    const n={...o}; if(v) n[id]=v; else delete n[id];
+    saveOdds(n); return n;
+  });
+
+  const games=(data&&Array.isArray(data.games))?data.games:[];
+  const minProb=(data&&data.min_prob)||0.9;
+  const when=data&&data.generated?new Date(data.generated):null;
+  return (
+    <>
+      <h1>Tips</h1>
+      <p className="lede">
+        Only picks the model rates {pct(minProb)} or better, from every result since 2015 and the game-day forecast.
+      </p>
+      <p className="current">
+        {data===undefined?"Loading tips\u2026":
+          <>{games.length>0&&data.round?`${data.round}${data.season?` ${data.season}`:""} \u00b7 `:""}
+            {when&&!isNaN(when)?`updated ${when.toLocaleString(undefined,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:"\u00a0"}</>}
+      </p>
+
+      {data!==undefined&&games.length===0&&(
+        <div className="panel tally">
+          <div className="panel-title">No upcoming games &mdash; tips return next season</div>
+        </div>
+      )}
+      {games.map(g=><TipCard key={g.id} g={g} bt={data.backtest} minProb={minProb} odds={odds} setOdds={setOdds}/>)}
+      {data&&<div style={{marginTop:games.length?22:0}}><ModelRecord bt={data.backtest} minProb={minProb}/></div>}
+
+      <p className="foot">
+        Estimates from historical data, not guarantees. Gamble responsibly &mdash; Gambling Help 1800 858 858.
+      </p>
+    </>
+  );
+}
+
+function App(){
+  const [tab,setTabState]=useState(()=>{
+    try{return localStorage.getItem("afl-tab")==="tips"?"tips":"h2h";}catch(e){return "h2h";}
+  });
+  const setTab=(t)=>{setTabState(t);try{localStorage.setItem("afl-tab",t);}catch(e){}};
+  // Both views stay mounted so switching tabs keeps the clubs you picked.
+  return (
+    <div className="page">
+      <div className="glow" aria-hidden="true"/>
+      <div className="wrap">
+        <div className="tabs" role="tablist" aria-label="View">
+          {[["h2h","Head to head"],["tips","Tips"]].map(([k,label])=>(
+            <button key={k} role="tab" aria-selected={tab===k} className={`tab${tab===k?" on":""}`}
+              onClick={()=>setTab(k)}>{label}</button>
+          ))}
+        </div>
+        <div role="tabpanel" hidden={tab!=="h2h"}><AflHeadToHead/></div>
+        <div role="tabpanel" hidden={tab!=="tips"}><Tips/></div>
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
   // Registered after load so it never delays first paint.
