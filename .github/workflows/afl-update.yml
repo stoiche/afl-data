@@ -1,8 +1,10 @@
 # Save as .github/workflows/afl-update.yml in a PUBLIC GitHub repo that also
-# contains update_afl_data.R, build_h2h_json.py and afl_player_games_2015_2026.csv.
+# contains update_afl_data.R, fetch_weather.py, build_h2h_json.py and
+# afl_player_games_2015_2026.csv.
 #
 # Each run: re-scrapes the current season from AFL Tables, rewrites the master
-# CSV, rebuilds h2h_compact.json, and commits whatever changed. The app fetches
+# CSV, tops up weather_cache.json with match-time weather for any new games,
+# rebuilds h2h_compact.json, and commits whatever changed. The app fetches
 # that JSON, so a successful run is all it takes for the app to show new results.
 
 name: AFL data update
@@ -40,6 +42,12 @@ jobs:
       - name: Refresh current season
         run: Rscript update_afl_data.R afl_player_games_2015_2026.csv
 
+      - name: Fetch match weather
+        # Stdlib only. Only uncached games are fetched, and a weather failure
+        # must never block the stats update - hence continue-on-error.
+        continue-on-error: true
+        run: python3 fetch_weather.py afl_player_games_2015_2026.csv weather_cache.json
+
       - name: Rebuild the app's data file
         # Stdlib only, so no pip install step. Fails loudly if match grouping
         # breaks, which stops a corrupt JSON reaching the app.
@@ -49,11 +57,14 @@ jobs:
         run: |
           git config user.name  "afl-data-bot"
           git config user.email "afl-data-bot@users.noreply.github.com"
-          rm -f afl_player_games_2015_2026.csv.bak
-          if git diff --quiet -- afl_player_games_2015_2026.csv h2h_compact.json; then
+          rm -f afl_player_games_2015_2026.csv.bak weather_cache.json.tmp
+          # Stage first: weather_cache.json is untracked on its first run, and a
+          # plain "git diff" can't see untracked files.
+          git add afl_player_games_2015_2026.csv h2h_compact.json
+          if [ -f weather_cache.json ]; then git add weather_cache.json; fi
+          if git diff --cached --quiet; then
             echo "No new results."
           else
-            git add afl_player_games_2015_2026.csv h2h_compact.json
             git commit -m "AFL data refresh $(date +%Y-%m-%d\ %H:%M)"
             git push
           fi
