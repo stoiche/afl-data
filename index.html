@@ -381,7 +381,7 @@ function AflHeadToHead(){
             <div className="scroll" style={{marginBottom:20}}>
               <table className="sum">
                 <thead><tr>
-                  <th>Ground</th><th>Game</th><th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Margin</th>
+                  <th>Ground</th><th>Game</th>{hasWx&&<th style={{textAlign:"center"}}>Weather</th>}<th>{teamA}</th><th>{teamB}</th><th>Total</th><th>Margin</th>
                 </tr></thead>
                 <tbody>
                   {matchups.map(m=>{
@@ -390,6 +390,7 @@ function AflHeadToHead(){
                       <tr key={m.id}>
                         <td>{m.venue}</td>
                         <td className="muted" style={{fontSize:12.5}}>{shortRound(m.round)} &rsquo;{m.year.slice(2)}</td>
+                        {hasWx&&<td style={{textAlign:"center"}}><WxMark wx={m.wx} size={17}/></td>}
                         <td className={m.winner===teamA?"win":""}>{a}</td>
                         <td className={m.winner===teamB?"win":""}>{b}</td>
                         <td style={{fontWeight:600}}>{a+b}</td>
@@ -455,7 +456,8 @@ function AflHeadToHead(){
                       <th style={{color:rankBy==="avg"?LAV:MUTED}}>Avg</th>
                       {shown.map(m=>(
                         <th key={m.id} title={`${roundLabel(m.round)} ${m.year} · ${m.venue}`}>
-                          {shortRound(m.round)} &rsquo;{m.year.slice(2)}
+                          <div>{shortRound(m.round)} &rsquo;{m.year.slice(2)}</div>
+                          {hasWx&&<div style={{marginTop:3,height:15}}><WxMark wx={m.wx} size={15}/></div>}
                         </th>
                       ))}
                     </tr>
@@ -555,6 +557,21 @@ function Side({s,win}){
     <span className={win?"win":""} style={{display:"inline-block"}}>
       {s.team} <span style={{fontVariantNumeric:"tabular-nums"}}>{s.gb}</span>
       {s.points!=null&&<span className="pts"> ({s.points})</span>}
+    </span>
+  );
+}
+
+// Icon only, for table cells and column headers. The status (and numbers, where
+// there are any) sit in the tooltip / screen-reader label. Null shows nothing.
+function WxMark({wx,size=16}){
+  if(!wx) return null;
+  const f=(n,d=0)=>Number(n).toFixed(d);
+  const nums=[wx.rain!=null&&`${f(wx.rain,1)} mm`,wx.gust!=null&&`${f(wx.gust)} km/h gusts`,
+              wx.temp!=null&&`${f(wx.temp)}\u00b0C`].filter(Boolean).join(" \u00b7 ");
+  const label=nums?`${wx.status} \u00b7 ${nums}`:wx.status;
+  return (
+    <span role="img" aria-label={label} title={label} style={{display:"inline-flex",verticalAlign:"middle"}}>
+      <WxIcon status={wx.status} size={size}/>
     </span>
   );
 }

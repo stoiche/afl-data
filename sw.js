@@ -4,7 +4,7 @@
 //   - the page itself and its icons rarely change, so serve from cache first
 //   - the results file changes twice a day, so always try the network first
 //     and only fall back to the cached copy when there's no signal
-const CACHE = "afl-h2h-v2";
+const CACHE = "afl-h2h-v3";
 const SHELL = ["./", "./index.html", "./manifest.json",
                "./icon-192.png", "./icon-512.png", "./icon-512-maskable.png",
                "./apple-touch-icon.png"];
