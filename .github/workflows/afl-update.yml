@@ -70,15 +70,34 @@ jobs:
           git config user.name  "afl-data-bot"
           git config user.email "afl-data-bot@users.noreply.github.com"
           rm -f afl_player_games_2015_2026.csv.bak weather_cache.json.tmp predictions.json.tmp
-          # Stage first: weather_cache.json is untracked on its first run, and a
-          # plain "git diff" can't see untracked files.
-          git add afl_player_games_2015_2026.csv h2h_compact.json
-          if [ -f weather_cache.json ]; then git add weather_cache.json; fi
-          if [ -f upcoming.csv ];       then git add upcoming.csv; fi
-          if [ -f predictions.json ];   then git add predictions.json; fi
+
+          # Stage one at a time: weather_cache.json, upcoming.csv and
+          # predictions.json are untracked on their first run, and a plain
+          # "git diff" can't see untracked files. -f gets past a .gitignore that
+          # would otherwise make "git add" fail and kill the step.
+          for f in afl_player_games_2015_2026.csv h2h_compact.json \
+                   weather_cache.json upcoming.csv predictions.json; do
+            if [ -f "$f" ]; then
+              git add -f -- "$f" || echo "warning: could not stage $f"
+            else
+              echo "note: $f was not produced this run"
+            fi
+          done
+
           if git diff --cached --quiet; then
             echo "No new results."
-          else
-            git commit -m "AFL data refresh $(date +%Y-%m-%d\ %H:%M)"
-            git push
+            exit 0
           fi
+          git status --short
+          git commit -m "AFL data refresh $(date +'%Y-%m-%d %H:%M')"
+
+          # The push is rejected if anything landed on the branch while this job
+          # was running (your own commits, or an overlapping scheduled run), so
+          # rebase onto whatever is there now and try again.
+          for attempt in 1 2 3; do
+            git push && exit 0
+            echo "push attempt $attempt was rejected - rebasing on origin/$GITHUB_REF_NAME"
+            git pull --rebase origin "$GITHUB_REF_NAME" || true
+          done
+          echo "Push failed three times."
+          exit 1
