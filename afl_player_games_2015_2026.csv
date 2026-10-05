@@ -101519,7 +101519,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,James Jordon,16,7,9,0,79
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,James Rowbottom,20,11,9,1,77
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Joel Amartey,7,6,1,3,75
-2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Justin McInerney,31,16,15,3,88
+2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Justin McInerney,32,16,16,3,88
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Lewis Melican,7,4,3,0,85
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Logan McDonald,11,4,7,1,69
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Malcolm Rosas,10,4,6,1,67
@@ -101527,7 +101527,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Nick Blakey,21,12,9,0,88
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Riley Bice,16,11,5,0,86
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Sam Wicks,9,5,4,0,84
-2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Tom McCartin,17,3,14,0,94
+2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Tom McCartin,16,3,13,0,94
 2026-03-05,19:30,S.C.G.,Sydney,20.12,Carlton,10.9,2026,1,Tom Papley,9,4,5,1,57
 2026-03-06,19:05,Carrara,Geelong,10.9,Gold Coast,19.11,2026,1,Bailey Smith,23,17,6,0,83
 2026-03-06,19:05,Carrara,Geelong,10.9,Gold Coast,19.11,2026,1,Brad Close,8,2,6,0,82
@@ -102041,7 +102041,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Colby McKercher,11,4,7,1,64
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Cooper Trembath,9,7,2,3,71
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Dylan Stephens,29,20,9,1,91
-2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Finn OSullivan,15,6,9,0,85
+2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Finn OSullivan,15,6,9,0,84
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Griffin Logue,14,11,3,0,87
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Harry Sheezel,31,18,13,0,79
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Jack Darling,12,9,3,1,61
@@ -102055,7 +102055,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Paul Curtis,7,6,1,1,79
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Toby Pink,15,10,5,0,91
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Tom Blamires,23,14,9,0,82
-2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Tom Powell,20,15,5,0,74
+2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Tom Powell,20,15,5,0,76
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Tristan Xerri,19,4,15,0,80
 2026-03-15,13:10,Docklands,North Melbourne,17.11,Port Adelaide,9.13,2026,2,Zane Duursma,5,2,3,1,69
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Aliir Aliir,15,10,5,0,100
@@ -102066,10 +102066,10 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Esava Ratugolea,8,4,4,0,85
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Ewan Mackinlay,13,7,6,0,79
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jack Watkins,10,7,3,0,65
-2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jack Whitlock,3,3,0,2,71
+2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jack Whitlock,3,3,0,2,72
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jacob Wehr,13,8,5,0,83
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jase Burgoyne,17,7,10,0,85
-2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jason Horne-Francis,12,8,4,0,74
+2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Jason Horne-Francis,12,8,4,0,73
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Joe Berry,11,7,4,0,70
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Joe Richards,14,11,3,0,75
 2026-03-15,13:10,Docklands,Port Adelaide,9.13,North Melbourne,17.11,2026,2,Kane Farrell,17,11,6,0,81
@@ -102295,7 +102295,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Changkuoth Jiath,14,12,2,0,75
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Christian Salem,26,24,2,0,84
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Daniel Turner,4,4,0,0,30
-2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Ed Langdon,22,8,14,2,89
+2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Ed Langdon,23,9,14,2,89
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Harry Petty,10,7,3,0,100
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Harry Sharp,10,7,3,2,74
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Harvey Langford,14,6,8,0,73
@@ -102308,7 +102308,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Kysaiah Pickett,16,10,6,1,88
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Latrelle Pickett,7,5,2,0,70
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Max Gawn,23,15,8,0,84
-2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Tom Sparrow,13,7,6,1,71
+2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Tom Sparrow,12,6,6,1,71
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Trent Rivers,21,15,6,0,82
 2026-03-21,16:35,Perth Stadium,Melbourne,10.10,Fremantle,17.16,2026,3,Xavier Lindsay,14,11,3,0,68
 2026-03-21,16:15,Sydney Showground,Greater Western Sydney,10.14,St Kilda,11.12,2026,3,Callum Brown,8,5,3,0,69
@@ -102411,7 +102411,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Dylan Stephens,17,11,6,0,89
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Finn OSullivan,18,8,10,1,78
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Griffin Logue,1,0,1,0,1
-2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Harry Sheezel,40,22,18,0,85
+2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Harry Sheezel,39,21,18,0,85
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Jack Darling,5,4,1,0,70
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Jacob Konstanty,9,3,6,1,74
 2026-03-22,15:10,Perth Stadium,North Melbourne,15.4,West Coast,17.9,2026,3,Jy Simpkin,23,15,8,0,87
@@ -102858,7 +102858,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Luke Ryan,10,8,2,0,85
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Matthew Johnson,20,11,9,0,61
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Murphy Reid,26,11,15,0,89
-2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Neil Erasmus,21,9,12,0,75
+2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Neil Erasmus,20,9,11,0,75
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Patrick Voss,13,9,4,2,91
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Sam Switkowski,13,4,9,0,74
 2026-04-03,18:45,Adelaide Oval,Fremantle,11.12,Adelaide,11.10,2026,5,Sean Darcy,7,5,2,0,43
@@ -103330,7 +103330,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Dayne Zorko,8,7,1,0,30
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Harris Andrews,15,9,6,0,92
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Hugh McCluggage,20,12,8,0,56
-2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Jarrod Berry,18,10,8,0,80
+2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Jarrod Berry,19,11,8,0,80
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Jaspa Fletcher,12,9,3,0,88
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Josh Dunkley,13,5,8,0,79
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Kai Lohmann,11,7,4,1,83
@@ -103344,7 +103344,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Sam Draper,12,11,1,2,69
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Ty Gallop,6,6,0,0,83
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Will Ashcroft,19,11,8,0,87
-2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Zac Bailey,21,14,7,2,90
+2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,Zac Bailey,20,13,7,2,90
 2026-04-11,12:05,Barossa Park,Brisbane Lions,13.14,North Melbourne,9.12,2026,6,,9,8,1,1,79
 2026-04-11,12:05,Barossa Park,North Melbourne,9.12,Brisbane Lions,13.14,2026,6,Aidan Corr,11,9,2,0,74
 2026-04-11,12:05,Barossa Park,North Melbourne,9.12,Brisbane Lions,13.14,2026,6,Caleb Daniel,18,8,10,0,85
@@ -104408,7 +104408,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Calsher Dear,9,5,4,1,67
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Cam Mackenzie,24,12,12,0,75
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Connor Macdonald,28,15,13,3,81
-2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Conor Nash,22,12,10,0,74
+2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Conor Nash,21,11,10,0,74
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Dylan Moore,18,11,7,1,91
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Finn Maginness,15,5,10,0,66
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Jack Ginnivan,24,12,12,1,78
@@ -104423,7 +104423,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Karl Amon,30,20,10,0,83
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Lloyd Meek,10,6,4,0,40
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Massimo DAmbrosio,23,14,9,1,81
-2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Mitch Lewis,14,7,7,2,86
+2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Mitch Lewis,15,8,7,2,86
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Ned Reeves,16,9,7,1,60
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Nick Watson,15,8,7,2,77
 2026-04-30,19:30,M.C.G.,Hawthorn,13.15,Collingwood,15.3,2026,9,Tom Barrass,7,6,1,0,83
@@ -108415,7 +108415,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Cooper Hynes,8,6,2,0,76
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Ed Richards,28,21,7,1,81
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,James ODonnell,9,6,3,0,100
-2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Jedd Busslinger,15,10,5,0,100
+2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Jedd Busslinger,16,11,5,0,100
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Joel Freijah,12,6,6,0,79
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Jordan Croft,7,5,2,1,85
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Josh Dolan,10,5,5,0,59
@@ -108424,7 +108424,7 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Luke Kennedy,3,3,0,0,63
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Marcus Bontempelli,25,14,11,2,87
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Matthew Kennedy,14,8,6,0,64
-2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Michael Sellwood,14,11,3,0,80
+2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Michael Sellwood,13,10,3,0,80
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Rhylee West,23,11,12,0,74
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Rory Lobb,17,10,7,1,78
 2026-07-12,13:10,Docklands,Western Bulldogs,13.8,West Coast,9.16,2026,19,Sam Davidson,9,5,4,1,75
@@ -111329,11 +111329,11 @@ date,time,venue,team,team_score,opponent,opponent_score,year,round,player,dispos
 2026-09-11,18:10,Perth Stadium,Geelong,16.10,Fremantle,18.12,2026,SF,Zach Guthrie,18,14,4,0,76
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Alex Neal-Bullen,16,9,7,1,74
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Ben Keays,11,6,5,2,81
-2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Brayden Cook,15,10,5,0,82
+2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Brayden Cook,14,9,5,0,82
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Callum Ah Chee,15,7,8,0,74
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Daniel Curtin,22,7,15,1,72
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Darcy Fogarty,8,7,1,2,89
-2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Hugo Hall-Kahan,24,16,8,0,81
+2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Hugo Hall-Kahan,25,17,8,0,81
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Izak Rankine,23,13,10,0,83
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,Jake Soligo,9,6,3,0,67
 2026-09-12,19:35,Gabba,Adelaide,13.13,Brisbane Lions,21.18,2026,SF,James Borlase,5,2,3,0,83
