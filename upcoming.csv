@@ -1,1 +1,19 @@
 "season","round","round_name","date","time","utc_start","venue","venue_tz","home_team","away_team","team","player","given","surname","position","named"
+2027,1,"Round 1","2027-03-17","19:30","2027-03-17T08:30:00.000+0000","SCG","Australia/Sydney","Sydney Swans","Geelong Cats","Sydney Swans","","","","",FALSE
+2027,1,"Round 1","2027-03-17","19:30","2027-03-17T08:30:00.000+0000","SCG","Australia/Sydney","Sydney Swans","Geelong Cats","Geelong Cats","","","","",FALSE
+2027,1,"Round 1","2027-03-18","17:10","2027-03-18T09:10:00.000+0000","Optus Stadium","Australia/Perth","Fremantle","Western Bulldogs","Fremantle","","","","",FALSE
+2027,1,"Round 1","2027-03-18","17:10","2027-03-18T09:10:00.000+0000","Optus Stadium","Australia/Perth","Fremantle","Western Bulldogs","Western Bulldogs","","","","",FALSE
+2027,1,"Round 1","2027-03-19","19:40","2027-03-19T08:40:00.000+0000","MCG","Australia/Melbourne","Hawthorn","Brisbane Lions","Hawthorn","","","","",FALSE
+2027,1,"Round 1","2027-03-19","19:40","2027-03-19T08:40:00.000+0000","MCG","Australia/Melbourne","Hawthorn","Brisbane Lions","Brisbane Lions","","","","",FALSE
+2027,1,"Round 1","2027-03-20","12:35","2027-03-20T01:35:00.000+0000","MCG","Australia/Melbourne","Richmond","Carlton","Richmond","","","","",FALSE
+2027,1,"Round 1","2027-03-20","12:35","2027-03-20T01:35:00.000+0000","MCG","Australia/Melbourne","Richmond","Carlton","Carlton","","","","",FALSE
+2027,1,"Round 1","2027-03-20","15:45","2027-03-20T05:15:00.000+0000","Adelaide Oval","Australia/Adelaide","Adelaide Crows","GWS GIANTS","Adelaide Crows","","","","",FALSE
+2027,1,"Round 1","2027-03-20","15:45","2027-03-20T05:15:00.000+0000","Adelaide Oval","Australia/Adelaide","Adelaide Crows","GWS GIANTS","GWS GIANTS","","","","",FALSE
+2027,1,"Round 1","2027-03-20","19:40","2027-03-20T08:40:00.000+0000","MCG","Australia/Melbourne","St Kilda","Collingwood","St Kilda","","","","",FALSE
+2027,1,"Round 1","2027-03-20","19:40","2027-03-20T08:40:00.000+0000","MCG","Australia/Melbourne","St Kilda","Collingwood","Collingwood","","","","",FALSE
+2027,1,"Round 1","2027-03-21","13:10","2027-03-21T02:10:00.000+0000","Marvel Stadium","Australia/Melbourne","North Melbourne","Port Adelaide","North Melbourne","","","","",FALSE
+2027,1,"Round 1","2027-03-21","13:10","2027-03-21T02:10:00.000+0000","Marvel Stadium","Australia/Melbourne","North Melbourne","Port Adelaide","Port Adelaide","","","","",FALSE
+2027,1,"Round 1","2027-03-21","15:15","2027-03-21T04:15:00.000+0000","MCG","Australia/Melbourne","Melbourne","Essendon","Melbourne","","","","",FALSE
+2027,1,"Round 1","2027-03-21","15:15","2027-03-21T04:15:00.000+0000","MCG","Australia/Melbourne","Melbourne","Essendon","Essendon","","","","",FALSE
+2027,1,"Round 1","2027-03-21","15:10","2027-03-21T07:10:00.000+0000","Optus Stadium","Australia/Perth","West Coast Eagles","Gold Coast SUNS","West Coast Eagles","","","","",FALSE
+2027,1,"Round 1","2027-03-21","15:10","2027-03-21T07:10:00.000+0000","Optus Stadium","Australia/Perth","West Coast Eagles","Gold Coast SUNS","Gold Coast SUNS","","","","",FALSE
